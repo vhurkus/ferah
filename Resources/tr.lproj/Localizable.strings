@@ -108,7 +108,6 @@
 "Finder didn't answer in time. Try again and answer Finder's password prompt." = "Finder zamanında yanıt vermedi. Tekrar dene ve Finder'ın parola penceresini yanıtla.";
 
 /* Storage */
-"Storage" = "Depolama";
 "See which folders take up space on your Mac, and open any of them to look deeper." = "Mac'inde hangi klasörlerin yer kapladığını gör, herhangi birini açıp içine bak.";
 "Analyze Storage" = "Depolamayı Analiz Et";
 "Analyze Again" = "Yeniden Analiz Et";
@@ -183,3 +182,155 @@
 "Their files in Library" = "Library'deki dosyaları";
 "Removed apps' leftovers" = "Silinmiş uygulama artıkları";
 "Your home folder" = "Ev klasörün";
+
+/* System Data */
+"System Data" = "Sistem Verisi";
+"macOS counts these under System Data. Find out what they are and remove the ones you don't need." = "macOS bunları Sistem Verisi altında sayar. Ne olduklarını gör, gerekmeyenleri kaldır.";
+"Time Machine snapshots" = "Time Machine anlık görüntüleri";
+"Xcode simulators" = "Xcode simülatörleri";
+"iPhone and iPad backups" = "iPhone ve iPad yedekleri";
+"Messages attachments" = "Mesajlar ekleri";
+"Looking…" = "Bakılıyor…";
+"Look Inside" = "İçine Bak";
+"Look Again" = "Yeniden Bak";
+"Found in System Data. Everything else there belongs to macOS and is managed by it." = "Sistem Verisi'nde bulundu. Oradaki diğer her şey macOS'e aittir ve onun tarafından yönetilir.";
+"Nothing of this kind on this Mac." = "Bu Mac'te bu türden bir şey yok.";
+"Delete Time Machine's local snapshots?" = "Time Machine'in yerel anlık görüntüleri silinsin mi?";
+"Remove the %@ simulator?" = "%@ simülatörü kaldırılsın mı?";
+"Delete unavailable simulators?" = "Kullanılamayan simülatörler silinsin mi?";
+"Move the backup of %@ to the Trash?" = "%@ yedeği Çöp Kutusu'na taşınsın mı?";
+"Your Time Machine backups on the backup disk aren't affected. macOS asks for your password." = "Yedekleme diskindeki Time Machine yedeklerin etkilenmez. macOS parolanı sorar.";
+"Xcode downloads it again if a project needs it." = "Bir proje ihtiyaç duyarsa Xcode onu yeniden indirir.";
+"These simulators can't run anymore because their runtime was removed." = "Bu simülatörlerin çalışma ortamı kaldırıldığı için artık çalışamazlar.";
+"Keep it if it's your only backup of this device. You can put it back from the Trash." = "Bu cihazın tek yedeğiyse sakla. Çöp Kutusu'ndan geri alabilirsin.";
+"Delete" = "Sil";
+"Delete…" = "Sil…";
+"Ferah wants to delete Time Machine's local snapshots." = "Ferah, Time Machine'in yerel anlık görüntülerini silmek istiyor.";
+"Couldn't remove %@: %@" = "%1$@ kaldırılamadı: %2$@";
+"Removed %@." = "%@ kaldırıldı.";
+"Size not reported" = "Boyut bildirilmiyor";
+"Time Machine local snapshots (%lld)" = "Time Machine yerel anlık görüntüleri (%lld)";
+"%@ simulator" = "%@ simülatörü";
+"%lld unavailable simulators" = "%lld kullanılamayan simülatör";
+"Backup of %@" = "%@ yedeği";
+"Hourly copies Time Machine keeps on this disk. macOS removes them when it needs space, but until then they count as System Data." = "Time Machine'in bu diskte tuttuğu saatlik kopyalar. macOS yer gerektiğinde onları siler ama o zamana kadar Sistem Verisi sayılırlar.";
+"Downloaded by Xcode to run apps in the simulator." = "Uygulamaları simülatörde çalıştırmak için Xcode tarafından indirildi.";
+"Left behind by simulator runtimes that were removed." = "Kaldırılmış simülatör çalışma ortamlarından geride kaldı.";
+"Made by Finder when backing up this device to the Mac." = "Finder bu cihazı Mac'e yedeklerken oluşturdu.";
+"Photos, videos and files from your conversations. Remove them in Messages: Settings › General › Keep messages, or delete large attachments in a conversation's details." = "Konuşmalarındaki fotoğraf, video ve dosyalar. Bunları Mesajlar'da kaldır: Ayarlar › Genel › Mesajları sakla ya da bir konuşmanın ayrıntılarından büyük ekleri sil.";
+"Open Messages" = "Mesajlar'ı Aç";
+"Backed up %@" = "Yedeklendi: %@";
+"macOS, snapshots, simulators, backups and other users. Open to see what you can remove." = "macOS, anlık görüntüler, simülatörler, yedekler ve diğer kullanıcılar. Neleri kaldırabileceğini görmek için aç.";
+
+/* Trashed apps */
+"%@ is in the Trash" = "%@ Çöp Kutusu'nda";
+"It left these files behind. The ones that are clearly its own are already checked." = "Geride bu dosyaları bıraktı. Açıkça ona ait olanlar zaten işaretli.";
+"In the Trash, left files behind" = "Çöp'te, geride dosya bıraktı";
+"%@ left %@ behind" = "%1$@ geride %2$@ bıraktı";
+"The app is in the Trash, but its files are still in your Library. Click to remove them." = "Uygulama Çöp Kutusu'nda ama dosyaları hâlâ Library'nde. Kaldırmak için tıkla.";
+"Your Mac is running out of space" = "Mac'inde yer azalıyor";
+"%@ left. Open Ferah to see what you can remove." = "%@ kaldı. Neleri kaldırabileceğini görmek için Ferah'ı aç.";
+
+/* Background items */
+"Background Items" = "Arka Plan Öğeleri";
+"Programs apps set up to start on their own, at login or when the Mac starts. See whose they are and turn off the ones you don't need." = "Uygulamaların oturum açılışında ya da Mac başlarken kendiliğinden çalışacak şekilde kurduğu programlar. Kime ait olduklarını gör, gerekmeyenleri kapat.";
+"Show Background Items" = "Arka Plan Öğelerini Göster";
+"Remove “%@”?" = "“%@” kaldırılsın mı?";
+"It's stopped and its file goes to the Trash." = "Durdurulur ve dosyası Çöp Kutusu'na gider.";
+"Its app may stop working properly or set it up again. Turning it off is usually enough." = "Uygulaması düzgün çalışmayabilir ya da onu yeniden kurabilir. Genellikle kapatmak yeterlidir.";
+"%lld background items" = "%lld arka plan öğesi";
+"Apps can also add login items that only System Settings shows." = "Uygulamalar yalnızca Sistem Ayarları'nda görünen açılış öğeleri de ekleyebilir.";
+"Login Items Settings" = "Açılış Öğeleri Ayarları";
+"No apps start anything on their own." = "Hiçbir uygulama kendiliğinden bir şey başlatmıyor.";
+"Ferah wants to change a background item." = "Ferah bir arka plan öğesini değiştirmek istiyor.";
+"Couldn't change %@: %@" = "%1$@ değiştirilemedi: %2$@";
+"%@ is on." = "%@ açık.";
+"%@ is off. It won't start again until you turn it on." = "%@ kapalı. Sen açana kadar yeniden başlamayacak.";
+"Moved %@ to the Trash." = "%@ Çöp Kutusu'na taşındı.";
+"Unknown app" = "Bilinmeyen uygulama";
+"Program missing" = "Programı eksik";
+"Starts with the Mac" = "Mac ile başlar";
+"Starts at login" = "Oturum açılışında başlar";
+"Kept running" = "Sürekli çalışır";
+"This user" = "Bu kullanıcı";
+"All users" = "Tüm kullanıcılar";
+"System, needs your password" = "Sistem, parola gerekir";
+"%@ runs" = "%@ çalışsın";
+
+/* Duplicates */
+"Duplicates" = "Yinelenenler";
+"No duplicates" = "Yinelenen dosya yok";
+"No two files over 1 MB in your home folders have the same contents." = "Ev klasörlerinde 1 MB'tan büyük, içeriği aynı iki dosya yok.";
+"Search Again" = "Yeniden Ara";
+"Comparing files…" = "Dosyalar karşılaştırılıyor…";
+"%lld files looked at" = "%lld dosyaya bakıldı";
+"Find files that are exact copies of each other, compared byte for byte, and keep just one." = "Birbirinin tıpatıp kopyası olan dosyaları byte byte karşılaştırarak bul, yalnızca birini sakla.";
+"Files over 1 MB" = "1 MB'tan büyük dosyalar";
+"Identical contents only" = "Yalnızca içeriği aynı olanlar";
+"Find Duplicates" = "Yinelenenleri Bul";
+"in %lld sets of identical files. One copy of each always stays." = "%lld grup aynı dosyada. Her birinin bir kopyası mutlaka kalır.";
+"Select All but the Oldest" = "En Eskisi Hariç Hepsini Seç";
+"%lld copies of %@" = "%1$lld kopya, her biri %2$@";
+"%@ can be freed" = "%@ boşaltılabilir";
+"One copy always stays." = "Bir kopya her zaman kalır.";
+"Oldest" = "En eski";
+"Kept" = "Kalacak";
+
+/* Menu bar & general settings */
+"General" = "Genel";
+"Show Ferah in the menu bar" = "Ferah'ı menü çubuğunda göster";
+"Warn when disk space runs low" = "Disk alanı azaldığında uyar";
+"Open at login" = "Oturum açılışında başlat";
+"While Ferah is in the menu bar it keeps running after you close its window, so it can tell you when an app you drag to the Trash leaves files behind." = "Ferah menü çubuğundayken penceresini kapatsan da çalışmaya devam eder; böylece Çöp'e sürüklediğin bir uygulama geride dosya bırakırsa sana haber verebilir.";
+"%@ free" = "%@ boş";
+"%lld trashed apps left files behind" = "Çöp'teki %lld uygulama geride dosya bıraktı";
+"Open Ferah" = "Ferah'ı Aç";
+"Settings" = "Ayarlar";
+"Quit Ferah" = "Ferah'tan Çık";
+
+/* Homebrew */
+"Homebrew" = "Homebrew";
+"Homebrew isn't installed" = "Homebrew kurulu değil";
+"Homebrew installs command-line tools and apps. Ferah shows what it installed and keeps it up to date." = "Homebrew komut satırı araçları ve uygulamalar kurar. Ferah onun kurduklarını gösterir ve güncel tutar.";
+"Visit brew.sh" = "brew.sh'yi Ziyaret Et";
+"See the apps and tools you installed with Homebrew, update them, and fix the ones whose app is gone." = "Homebrew ile kurduğun uygulama ve araçları gör, güncelle, uygulaması kaybolanları düzelt.";
+"Apps (casks)" = "Uygulamalar (cask)";
+"Command-line tools" = "Komut satırı araçları";
+"Updates" = "Güncellemeler";
+"Old versions" = "Eski sürümler";
+"Show Homebrew Packages" = "Homebrew Paketlerini Göster";
+"Uninstall %@?" = "%@ kaldırılsın mı?";
+"Uninstall" = "Kaldır";
+"Uninstalling %@" = "%@ kaldırılıyor";
+"Homebrew removes the app and the files it keeps in your Library. This can't be undone from the Trash." = "Homebrew uygulamayı ve Library'de tuttuğu dosyaları kaldırır. Bu işlem Çöp Kutusu'ndan geri alınamaz.";
+"Homebrew removes this tool. Other tools that need it may stop working." = "Homebrew bu aracı kaldırır. Ona ihtiyaç duyan diğer araçlar çalışmayabilir.";
+"App missing" = "Uygulama eksik";
+"Homebrew still lists these, but their app is gone. Reinstall it, or remove it from Homebrew." = "Homebrew bunları hâlâ listeliyor ama uygulamaları yok. Yeniden kur ya da Homebrew'dan kaldır.";
+"Reinstall" = "Yeniden Kur";
+"Reinstalling %@" = "%@ yeniden kuruluyor";
+"Remove" = "Kaldır";
+"Update" = "Güncelle";
+"Updating %@" = "%@ güncelleniyor";
+"Old versions and downloads: %@" = "Eski sürümler ve indirmeler: %@";
+"Homebrew keeps previous versions and installers. Cleaning up removes them." = "Homebrew önceki sürümleri ve kurulum dosyalarını saklar. Temizlik bunları kaldırır.";
+"Clean Up" = "Temizle";
+"Cleaning up Homebrew" = "Homebrew temizleniyor";
+"Apps" = "Uygulamalar";
+"Uninstall…" = "Kaldır…";
+"%lld dependencies" = "%lld bağımlılık";
+"Remove Unused" = "Kullanılmayanları Kaldır";
+"Removing unused dependencies" = "Kullanılmayan bağımlılıklar kaldırılıyor";
+"Removes dependencies nothing needs anymore (brew autoremove)." = "Artık hiçbir şeyin ihtiyaç duymadığı bağımlılıkları kaldırır (brew autoremove).";
+"%lld updates available" = "%lld güncelleme var";
+"Everything is up to date" = "Her şey güncel";
+"%lld apps and %lld tools installed with Homebrew." = "Homebrew ile %lld uygulama ve %lld araç kurulu.";
+"Check for Updates" = "Güncellemeleri Denetle";
+"Checking for updates" = "Güncellemeler denetleniyor";
+"Update All" = "Tümünü Güncelle";
+"Updating everything" = "Her şey güncelleniyor";
+"to" = "yeni sürüm:";
+"Updates itself" = "Kendini günceller";
+"This one needs your password, which only Terminal can ask for. Paste the command there." = "Bu işlem parolanı istiyor ve bunu yalnızca Terminal sorabiliyor. Komutu oraya yapıştır.";
+"Copy Command" = "Komutu Kopyala";
+"Open Terminal" = "Terminal'i Aç";
+"Homebrew removes the app. Its files in your Library stay; review them afterwards under Applications › Removed apps." = "Homebrew uygulamayı kaldırır. Library'deki dosyaları kalır; sonra Uygulamalar › Kaldırılmış uygulamalar altında gözden geçir.";

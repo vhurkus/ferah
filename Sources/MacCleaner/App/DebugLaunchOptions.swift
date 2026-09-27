@@ -24,6 +24,10 @@ enum DebugLaunchOptions {
         }
         switch defaults.string(forKey: "UIScreen") {
         case "storage": select(.storage)
+        case "systemData": select(.systemData)
+        case "backgroundItems": select(.backgroundItems)
+        case "duplicates": select(.duplicates)
+        case "homebrew": select(.homebrew)
         case "caches": select(.module(.caches))
         case "developer": select(.module(.developer))
         case "largeFiles": select(.module(.largeFiles))

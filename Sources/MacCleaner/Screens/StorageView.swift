@@ -6,6 +6,8 @@ import SwiftUI
 /// Any folder opens to show what's inside, largest first.
 struct StorageView: View {
     let model: AppModel
+    /// Shows what's in "macOS and other data".
+    let openSystemData: () -> Void
 
     /// Folders opened so far; empty means the top level.
     @ViewState private var path: [URL] = []
@@ -112,6 +114,7 @@ struct StorageView: View {
                 ForEach(entries) { entry in
                     StorageRow(entry: entry, share: total > 0 ? Double(entry.bytes) / Double(total) : 0,
                                home: model.home) {
+                        if entry.url.path == StorageRow.systemPath { openSystemData(); return }
                         if entry.isFolder, map.entries(in: entry.url) != nil { path.append(entry.url) }
                     } trash: {
                         pendingTrash = entry
@@ -284,8 +287,9 @@ private struct StorageRow: View {
 
     var body: some View {
         HStack(spacing: Space.s) {
-            // Only folders open; files keep full contrast so they don't read as unavailable.
-            if entry.isFolder {
+            // Only folders (and the system row, which leads to System Data) open;
+            // files keep full contrast so they don't read as unavailable.
+            if entry.isFolder || isSystem {
                 Button(action: open) { rowContent }
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(.isButton)
@@ -315,7 +319,7 @@ private struct StorageRow: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
                 if isSystem {
-                    Text("macOS, system data, other users and snapshots. Ferah never touches these.")
+                    Text("macOS, snapshots, simulators, backups and other users. Open to see what you can remove.")
                         .font(.caption)
                         .foregroundStyle(.textSecondary)
                 } else {
@@ -329,7 +333,7 @@ private struct StorageRow: View {
             Image(systemName: "chevron.forward")
                 .font(.callout.weight(.semibold))
                 .foregroundStyle(.textSecondary)
-                .opacity(entry.isFolder ? 1 : 0)
+                .opacity(entry.isFolder || isSystem ? 1 : 0)
                 .accessibilityHidden(true)
         }
         .padding(.vertical, Space.s)

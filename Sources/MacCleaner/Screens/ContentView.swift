@@ -4,12 +4,16 @@ import SwiftUI
 enum SidebarItem: Hashable {
     case overview
     case storage
+    case systemData
+    case backgroundItems
+    case duplicates
+    case homebrew
     case module(ModuleKind)
 }
 
 struct ContentView: View {
     @ViewState private var selection: SidebarItem? = .overview
-    @ViewState private var model = AppModel()
+    let model: AppModel
 
     var body: some View {
         NavigationSplitView {
@@ -26,6 +30,31 @@ struct ContentView: View {
                     IconTile(symbol: "chart.pie.fill", tint: .indigo, size: Metrics.sidebarIcon)
                 }
                 .tag(SidebarItem.storage)
+                Label {
+                    Text("System Data")
+                } icon: {
+                    IconTile(symbol: SystemDataView.symbol, tint: SystemDataView.tint, size: Metrics.sidebarIcon)
+                }
+                .tag(SidebarItem.systemData)
+                Label {
+                    Text("Background Items")
+                } icon: {
+                    IconTile(symbol: BackgroundItemsView.symbol, tint: BackgroundItemsView.tint, size: Metrics.sidebarIcon)
+                }
+                .tag(SidebarItem.backgroundItems)
+                Label {
+                    Text("Duplicates")
+                } icon: {
+                    IconTile(symbol: DuplicatesView.symbol, tint: DuplicatesView.tint, size: Metrics.sidebarIcon)
+                }
+                .tag(SidebarItem.duplicates)
+                Label {
+                    Text("Homebrew")
+                } icon: {
+                    IconTile(symbol: HomebrewView.symbol, tint: HomebrewView.tint, size: Metrics.sidebarIcon)
+                }
+                .badge(model.brewPackages.map { $0.filter(\.isOutdated).count }.flatMap { $0 > 0 ? Text("\($0)") : nil })
+                .tag(SidebarItem.homebrew)
                 Section {
                     ForEach(ModuleKind.allCases) { kind in
                         Label {
@@ -45,8 +74,20 @@ struct ContentView: View {
                 OverviewView(model: model, openStorage: { selection = .storage }) { selection = .module($0) }
                     .navigationTitle(Text("Overview"))
             case .storage:
-                StorageView(model: model)
+                StorageView(model: model) { selection = .systemData }
                     .navigationTitle(Text("Storage"))
+            case .systemData:
+                SystemDataView(model: model)
+                    .navigationTitle(Text("System Data"))
+            case .backgroundItems:
+                BackgroundItemsView(model: model)
+                    .navigationTitle(Text("Background Items"))
+            case .duplicates:
+                DuplicatesView(model: model)
+                    .navigationTitle(Text("Duplicates"))
+            case .homebrew:
+                HomebrewView(model: model)
+                    .navigationTitle(Text("Homebrew"))
             case .module(.apps):
                 AppsView(model: model)
                     .navigationTitle(Text(ModuleKind.apps.title))
@@ -60,12 +101,19 @@ struct ContentView: View {
             ToolbarItem(placement: .primaryAction) { scanButton }
         }
         .frame(minWidth: Metrics.minWindow.width, minHeight: Metrics.minWindow.height)
+        .onReceive(NotificationCenter.default.publisher(for: .selectSidebarItem)) { note in
+            if let item = note.object as? SidebarItem { selection = item }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .showTrashedApp)) { note in
+            guard let path = note.object as? String else { return }
+            model.requestedTrashedApp = URL(fileURLWithPath: path)
+            selection = .module(.apps)
+        }
         .onAppear {
-            model.refreshVolume()
+            model.start()
             #if DEBUG
             DebugLaunchOptions.apply(to: model) { selection = $0 }
             #endif
-            model.watchApplicationFolders()
         }
     }
 

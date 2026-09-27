@@ -49,7 +49,7 @@ public enum Scanner {
     static let largeFileExcludedRoots: Set<String> = ["Library", "Applications"]
 
     /// Every visible folder in the home folder except Library and Applications.
-    static func largeFileRoots(home: URL, log: UnreadableLog) -> [URL] {
+    public static func largeFileRoots(home: URL, log: UnreadableLog = UnreadableLog()) -> [URL] {
         FileWalker.children(of: home, log: log).filter { url in
             guard !largeFileExcludedRoots.contains(url.lastPathComponent),
                   let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey, .isPackageKey])

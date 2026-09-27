@@ -14,6 +14,7 @@ struct AppsView: View {
     @ViewState private var dropRejection: TrashPolicy.Rejection?
     @ViewState private var sort = AppSort.size
     @ViewState private var showsOrphans = false
+    @ViewState private var selectedTrashed: URL?
 
     enum AppSort: String, CaseIterable, Identifiable {
         case name, size, lastUsed
@@ -51,17 +52,15 @@ struct AppsView: View {
 
     var body: some View {
         Group {
-            if model.results[.apps] == nil {
-                EmptyStateHero(
-                    symbol: ModuleKind.apps.symbol, tint: ModuleKind.apps.tint, title: Text(ModuleKind.apps.title),
-                    message: Text("Remove apps together with the files they leave in your Library, and clean up after apps you've already deleted."),
-                    places: ModuleKind.apps.places,
-                    actionTitle: model.scanning.contains(.apps) ? "Scanning…" : "Start Scan",
-                    isWorking: model.scanning.contains(.apps)
-                ) {
-                    model.scan([.apps])
+            if model.results[.apps] == nil, model.trashedApps.isEmpty {
+                // Keep the result of the last move visible even when the list is gone.
+                VStack(spacing: 0) {
+                    if let outcome {
+                        TrashResultBanner(outcome: outcome, model: model) { self.outcome = nil }
+                            .padding([.horizontal, .top], Metrics.windowPadding)
+                    }
+                    startHero
                 }
-                .disabled(model.isScanning && !model.scanning.contains(.apps))
             } else {
                 HStack(spacing: 0) {
                     appList
@@ -79,9 +78,17 @@ struct AppsView: View {
             }
             dropRejection = nil
             showsOrphans = false
+            selectedTrashed = nil
             selectedURL = url
             return true
         } isTargeted: { isDropTargeted = $0 }
+        .onChange(of: model.requestedTrashedApp, initial: true) { _, url in
+            guard let url else { return }
+            selectedTrashed = url
+            selectedURL = nil
+            showsOrphans = false
+            model.requestedTrashedApp = nil
+        }
         .overlay {
             if isDropTargeted {
                 RoundedRectangle(cornerRadius: Metrics.groupRadius)
@@ -90,6 +97,19 @@ struct AppsView: View {
                     .allowsHitTesting(false)
             }
         }
+    }
+
+    private var startHero: some View {
+        EmptyStateHero(
+            symbol: ModuleKind.apps.symbol, tint: ModuleKind.apps.tint, title: Text(ModuleKind.apps.title),
+            message: Text("Remove apps together with the files they leave in your Library, and clean up after apps you've already deleted."),
+            places: ModuleKind.apps.places,
+            actionTitle: model.scanning.contains(.apps) ? "Scanning…" : "Start Scan",
+            isWorking: model.scanning.contains(.apps)
+        ) {
+            model.scan([.apps])
+        }
+        .disabled(model.isScanning && !model.scanning.contains(.apps))
     }
 
     private var appList: some View {
@@ -107,10 +127,22 @@ struct AppsView: View {
             .padding(Space.m)
             ScrollView {
                 LazyVStack(spacing: 0) {
+                    if filter.isEmpty, !model.trashedApps.isEmpty {
+                        ForEach(model.trashedApps) { trashed in
+                            TrashedAppRow(trashed: trashed, isSelected: selectedTrashed == trashed.app.url) {
+                                selectedTrashed = trashed.app.url
+                                showsOrphans = false
+                                selectedURL = nil
+                                dropRejection = nil
+                            }
+                        }
+                        if model.orphans?.items.isEmpty ?? true { Divider().padding(.vertical, Space.xs) }
+                    }
                     if let orphans = model.orphans, !orphans.items.isEmpty, filter.isEmpty {
                         OrphansRow(result: orphans, isSelected: showsOrphans) {
                             showsOrphans = true
                             selectedURL = nil
+                            selectedTrashed = nil
                             dropRejection = nil
                         }
                         Divider().padding(.vertical, Space.xs)
@@ -122,6 +154,7 @@ struct AppsView: View {
                                showsLocation: (names[entry.app.name]?.count ?? 0) > 1) {
                             selectedURL = entry.app.url
                             showsOrphans = false
+                            selectedTrashed = nil
                             dropRejection = nil
                         }
                     }
@@ -143,8 +176,23 @@ struct AppsView: View {
                 DropRejectionNotice(rejection: dropRejection) { self.dropRejection = nil }
                     .padding([.horizontal, .top], Metrics.windowPadding)
             }
-            if showsOrphans, let orphans = model.orphans {
-                OrphansView(result: orphans, model: model) { self.outcome = $0 }
+            if let selectedTrashed, let trashed = model.trashedApps.first(where: { $0.app.url == selectedTrashed }) {
+                LeftoversView(
+                    icon: Image(nsImage: NSWorkspace.shared.icon(forFile: trashed.app.url.path)),
+                    title: Text("\(trashed.app.name) is in the Trash"),
+                    message: Text("It left these files behind. The ones that are clearly its own are already checked."),
+                    result: trashed.leftovers,
+                    preselected: Set(trashed.leftovers.items.filter { $0.safety != .review }.map(\.url)),
+                    model: model
+                ) { self.outcome = $0 }
+                .id(selectedTrashed)
+            } else if showsOrphans, let orphans = model.orphans {
+                LeftoversView(
+                    icon: nil,
+                    title: Text("Leftovers of removed apps"),
+                    message: Text("These are named after apps that aren't on this Mac anymore. Check each one before moving it to the Trash."),
+                    result: orphans, preselected: [], model: model
+                ) { self.outcome = $0 }
             } else if let selectedURL {
                 AppUninstallView(app: InstalledApp(url: selectedURL), model: model) { outcome in
                     self.outcome = outcome
@@ -198,30 +246,45 @@ private struct OrphansRow: View {
     }
 }
 
-/// Leftovers of apps that are no longer installed. Nothing starts checked: each one is the user's call.
-private struct OrphansView: View {
+/// Files an app left behind (for an app in the Trash, or for apps that are gone),
+/// with only what's provably the app's own checked from the start.
+private struct LeftoversView: View {
+    let icon: Image?
+    let title: Text
+    let message: Text
     let result: ModuleResult
+    let preselected: Set<URL>
     let model: AppModel
     let finished: (TrashOutcome) -> Void
 
-    @ViewState private var checked: Set<URL> = []
+    @ViewState private var checked: Set<URL>?
     @ViewState private var isMoving = false
+
+    private var checkedURLs: Binding<Set<URL>> {
+        Binding(get: { checked ?? preselected }, set: { checked = $0 })
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: Space.m) {
-                IconTile(symbol: "questionmark.folder.fill", tint: .gray, size: Metrics.appIconLarge)
+                if let icon {
+                    icon.resizable()
+                        .frame(width: Metrics.appIconLarge, height: Metrics.appIconLarge)
+                        .accessibilityHidden(true)
+                } else {
+                    IconTile(symbol: "questionmark.folder.fill", tint: .gray, size: Metrics.appIconLarge)
+                }
                 VStack(alignment: .leading, spacing: Space.xxs) {
-                    Text("Leftovers of removed apps").font(.title2)
-                    Text("These are named after apps that aren't on this Mac anymore. Check each one before moving it to the Trash.")
+                    title.font(.title2)
+                    message
                         .foregroundStyle(.textSecondary)
                         .lineLimit(3)
                 }
             }
             .padding(Metrics.windowPadding)
-            ItemTable(items: result.items, checked: $checked, home: model.home)
+            ItemTable(items: result.items, checked: checkedURLs, home: model.home)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    TrashBar(selected: result.items.filter { checked.contains($0.url) }, isWorking: isMoving) {
+                    TrashBar(selected: result.items.filter { checkedURLs.wrappedValue.contains($0.url) }, isWorking: isMoving) {
                         Task { await moveChecked() }
                     }
                 }
@@ -230,12 +293,55 @@ private struct OrphansView: View {
 
     private func moveChecked() async {
         isMoving = true
-        let items = result.items.filter { checked.contains($0.url) }
+        let items = result.items.filter { checkedURLs.wrappedValue.contains($0.url) }
         let outcome = await TrashService.moveToTrash(items, home: model.home, applicationRoots: model.applicationRoots)
         model.forget(outcome.moved)
-        checked.subtract(outcome.moved)
+        checked = checkedURLs.wrappedValue.subtracting(outcome.moved)
         isMoving = false
         finished(outcome)
+    }
+}
+
+/// An app the user dragged to the Trash that left files behind.
+private struct TrashedAppRow: View {
+    let trashed: TrashedApp
+    let isSelected: Bool
+    let select: () -> Void
+
+    var body: some View {
+        Button(action: select) {
+            HStack(spacing: Space.s) {
+                Image(nsImage: NSWorkspace.shared.icon(forFile: trashed.app.url.path))
+                    .resizable()
+                    .frame(width: Metrics.appIconSmall, height: Metrics.appIconSmall)
+                    .overlay(alignment: .bottomTrailing) {
+                        Image(systemName: "trash.circle.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.white, .red)
+                    }
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(verbatim: trashed.app.name).lineLimit(1)
+                        Spacer(minLength: Space.xs)
+                        Text(trashed.leftovers.totalBytes.byteString)
+                            .font(.callout)
+                            .monospacedDigit()
+                            .foregroundStyle(.textSecondary)
+                    }
+                    Text("In the Trash, left files behind")
+                        .font(.caption)
+                        .foregroundStyle(.textSecondary)
+                        .lineLimit(1)
+                }
+            }
+            .padding(.horizontal, Space.s)
+            .padding(.vertical, Space.xs + Space.xxs)
+            .contentShape(Rectangle())
+            .background(isSelected ? Color.rowSelected : .clear, in: RoundedRectangle(cornerRadius: Metrics.rowRadius))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
@@ -420,6 +526,7 @@ private struct AppUninstallView: View {
 
     private func moveChecked(_ files: ModuleResult) async {
         isMoving = true
+        model.noteUninstalled(app.bundleIdentifier)
         let items = files.items.filter { checked.contains($0.url) }
         let outcome = await TrashService.moveToTrash(items, home: model.home, applicationRoots: model.applicationRoots)
         model.forget(outcome.moved)
