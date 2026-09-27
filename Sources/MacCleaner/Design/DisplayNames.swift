@@ -18,6 +18,11 @@ enum DisplayNames {
         return name
     }
 
+    /// The path with the home folder shortened to "~".
+    static func abbreviated(_ url: URL, home: URL) -> String {
+        url.path.hasPrefix(home.path + "/") ? "~" + url.path.dropFirst(home.path.count) : url.path
+    }
+
     /// Parent folder with the home folder shortened to "~".
     static func location(of url: URL, home: URL) -> String {
         let parent = url.deletingLastPathComponent().path

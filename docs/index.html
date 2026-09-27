@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ferah: Free Mac Cleaner and App Uninstaller (Open Source)</title>
+<meta name="description" content="Ferah is a free, open-source Mac cleaner and app uninstaller. Remove apps with all their leftovers, see what fills your disk, clear System Data, caches and duplicates. Nothing is deleted permanently.">
+<link rel="canonical" href="https://vhurkus.github.io/ferah/">
+<link rel="alternate" hreflang="en" href="https://vhurkus.github.io/ferah/">
+<link rel="alternate" hreflang="tr" href="https://vhurkus.github.io/ferah/tr/">
+<link rel="alternate" hreflang="x-default" href="https://vhurkus.github.io/ferah/">
+<link rel="icon" type="image/png" href="images/favicon.png">
+<link rel="apple-touch-icon" href="images/icon.png">
+<meta name="theme-color" content="#16161a">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ferah">
+<meta property="og:title" content="Ferah: Free Mac Cleaner and App Uninstaller">
+<meta property="og:description" content="Uninstall Mac apps completely, see what fills your disk and clear System Data. Free, open source, and everything goes to the Trash.">
+<meta property="og:url" content="https://vhurkus.github.io/ferah/">
+<meta property="og:image" content="https://vhurkus.github.io/ferah/images/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="tr_TR">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Ferah",
+  "description": "Free, open-source Mac cleaner and app uninstaller that only moves files to the Trash.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "macOS 15 or later",
+  "softwareVersion": "0.3.0",
+  "url": "https://vhurkus.github.io/ferah/",
+  "downloadUrl": "https://github.com/vhurkus/ferah/releases/latest",
+  "screenshot": "https://vhurkus.github.io/ferah/images/overview.png",
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "Hüseyin Yücel", "url": "https://github.com/vhurkus" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Is Ferah free?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Yes. Ferah is free and open source under the MIT license, with no subscriptions, ads or in-app purchases."}},
+    {"@type": "Question", "name": "Does Ferah delete files permanently?",
+     "acceptedAnswer": {"@type": "Answer", "text": "No. Everything Ferah removes goes to the Trash, where Finder's Put Back still works. Space is freed when you empty the Trash."}},
+    {"@type": "Question", "name": "How do I completely uninstall an app on Mac?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Dragging an app to the Trash leaves its files in ~/Library. Ferah finds the app's containers, caches, preferences, saved state, launch agents and files in /Library, preselects the ones that provably belong to it, and moves them to the Trash together with the app. It also notices apps you drag to the Trash yourself."}},
+    {"@type": "Question", "name": "What is System Data on Mac and how do I reduce it?",
+     "acceptedAnswer": {"@type": "Answer", "text": "System Data includes Time Machine local snapshots, Xcode simulator runtimes, iPhone and iPad backups, caches and Messages attachments. Ferah lists the parts you can act on and removes each one with the tool macOS expects, such as tmutil for snapshots and simctl for simulators."}},
+    {"@type": "Question", "name": "Why isn't Ferah on the Mac App Store?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Mac App Store apps must run in a sandbox and can't ask for administrator rights, so they can't remove apps' leftovers or measure the whole disk. Ferah is signed with a Developer ID and notarized by Apple instead."}}
+  ]
+}
+</script>
+
+<style>
+:root {
+  --bg: #fbfbfd; --fg: #1d1d1f; --muted: #5f5f66; --card: #ffffff; --line: rgba(0,0,0,.08);
+  --accent: #0a84ff; --accent-fg: #fff; --code: #f2f2f5;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #16161a; --fg: #f5f5f7; --muted: #a1a1aa; --card: #1f1f24; --line: rgba(255,255,255,.08); --code: #26262c; }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; }
+nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--fg); }
+nav .brand img { width: 30px; height: 30px; }
+nav .links { display: flex; gap: 20px; font-size: 15px; }
+nav .links a { color: var(--muted); white-space: nowrap; }
+@media (max-width: 640px) { nav .links a.optional { display: none; } nav .links { gap: 14px; } }
+body { overflow-x: hidden; }
+header.hero { position: relative; text-align: center; padding: 56px 0 24px; overflow: hidden; }
+.glow { position: absolute; inset: -20% -10% auto; height: 520px; z-index: -1; filter: blur(90px); opacity: .55;
+  background: radial-gradient(40% 50% at 30% 40%, #5e5ce6, transparent), radial-gradient(35% 45% at 70% 55%, #30b0c7, transparent); }
+.hero img.icon { width: 112px; height: 112px; }
+h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.08; letter-spacing: -.02em; margin: 18px 0 14px; }
+.lead { font-size: clamp(18px, 2.4vw, 21px); color: var(--muted); max-width: 720px; margin: 0 auto 28px; }
+.cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-weight: 600; font-size: 16px; }
+.btn.primary { background: var(--accent); color: var(--accent-fg); }
+.btn.secondary { background: var(--card); color: var(--fg); border: 1px solid var(--line); }
+.btn:hover { text-decoration: none; filter: brightness(1.06); }
+.small { font-size: 14px; color: var(--muted); margin-top: 14px; }
+.shot { margin: 40px auto 0; max-width: 1000px; }
+.shot img { width: 100%; height: auto; display: block; }
+section { padding: 56px 0; }
+h2 { font-size: clamp(26px, 4vw, 36px); letter-spacing: -.015em; margin: 0 0 10px; }
+h3 { font-size: 20px; margin: 0 0 6px; }
+.sub { color: var(--muted); margin: 0 0 32px; max-width: 700px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+.card p { margin: 0; color: var(--muted); font-size: 16px; }
+.tile { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font-size: 21px; margin-bottom: 12px; color: #fff; }
+.feature { display: grid; grid-template-columns: 1fr 1.25fr; gap: 36px; align-items: center; margin-top: 44px; }
+.feature.reverse { grid-template-columns: 1.25fr 1fr; }
+.feature.reverse .text { order: 2; }
+.feature img { width: 100%; height: auto; }
+.feature ul { color: var(--muted); padding-left: 20px; margin: 12px 0 0; }
+.feature li { margin: 6px 0; }
+@media (max-width: 800px) { .feature, .feature.reverse { grid-template-columns: 1fr; } .feature.reverse .text { order: 0; } }
+pre, code { font: 14.5px/1.5 ui-monospace, "SF Mono", Menlo, monospace; }
+pre { background: var(--code); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 0; }
+code { background: var(--code); border-radius: 6px; padding: 1px 6px; }
+pre code { background: none; padding: 0; }
+ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 18px; }
+ol.steps li { counter-increment: s; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px 20px 70px; position: relative; }
+ol.steps li::before { content: counter(s); position: absolute; left: 22px; top: 20px; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; }
+ol.steps p { margin: 4px 0 0; color: var(--muted); }
+details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; margin-bottom: 12px; }
+summary { cursor: pointer; font-weight: 600; }
+details p { color: var(--muted); margin: 10px 0 0; }
+footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
+footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="brand" href="./"><img src="images/icon.png" alt="" width="30" height="30">Ferah</a>
+    <div class="links">
+      <a class="optional" href="#features">Features</a>
+      <a class="optional" href="#install">Install</a>
+      <a class="optional" href="#faq">FAQ</a>
+      <a href="https://github.com/vhurkus/ferah">GitHub</a>
+      <a href="tr/" hreflang="tr" lang="tr">Türkçe</a>
+    </div>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="glow" aria-hidden="true"></div>
+  <div class="wrap">
+    <img class="icon" src="images/icon.png" alt="Ferah app icon" width="112" height="112">
+    <h1>A Mac cleaner that shows its work</h1>
+    <p class="lead">Ferah uninstalls apps with all their leftovers, shows what fills your disk and clears System Data. It explains why each file is safe to remove, and never deletes anything permanently: everything goes to the Trash.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/vhurkus/ferah/releases/latest">Download for Mac</a>
+      <a class="btn secondary" href="#install">Install with Homebrew</a>
+    </div>
+    <p class="small">Free and open source · macOS 15 or later · Notarized by Apple</p>
+    <div class="shot"><img src="images/overview.png" alt="Ferah overview showing removable space, the Trash and four cleaning modules" width="1800" height="1179"></div>
+  </div>
+</header>
+
+<main>
+<section id="features">
+  <div class="wrap">
+    <h2>Everything a Mac cleaner should do</h2>
+    <p class="sub">And nothing it shouldn't: no fake speed boosts, no memory "cleaning", no removing language files from apps.</p>
+
+    <div class="feature">
+      <div class="text">
+        <h3>Uninstall apps completely</h3>
+        <p class="sub" style="margin:0">Dragging an app to the Trash leaves its data behind. Ferah finds it all.</p>
+        <ul>
+          <li>Containers, caches, preferences, saved state, scripts and crash reports in <code>~/Library</code></li>
+          <li>Launch agents, daemons and helper tools in <code>/Library</code></li>
+          <li>Only files that provably belong to the app start checked; guesses are left for you</li>
+          <li>Notices apps you drag to the Trash yourself and offers their leftovers</li>
+          <li>Finds leftovers of apps you removed long ago</li>
+          <li>Sort apps by size or by when you last used them</li>
+        </ul>
+      </div>
+      <img src="images/uninstall.png" alt="Uninstalling Maccy with Ferah: the app plus its container, caches, scripts and preferences" width="1800" height="1179" loading="lazy">
+    </div>
+
+    <div class="feature reverse">
+      <div class="text">
+        <h3>See what fills your disk</h3>
+        <p class="sub" style="margin:0">Your home folder, apps, /Library and Homebrew, measured in one pass.</p>
+        <ul>
+          <li>Open any folder to see what's inside, largest first</li>
+          <li>Move anything to the Trash right from the list</li>
+          <li>The part macOS keeps for itself is shown separately, never touched</li>
+        </ul>
+      </div>
+      <img src="images/storage.png" alt="Ferah storage view listing folders in Library by size" width="1800" height="1179" loading="lazy">
+    </div>
+
+    <div class="grid" style="margin-top:52px">
+      <div class="card"><div class="tile" style="background:#a2845e">▤</div><h3>System Data, explained</h3>
+        <p>Time Machine local snapshots, Xcode simulators and iPhone backups, each removed the way macOS expects.</p></div>
+      <div class="card"><div class="tile" style="background:#0a84ff">⇣</div><h3>Caches and logs</h3>
+        <p>App caches that apps rebuild on their own, and old logs. Every item says why it's safe.</p></div>
+      <div class="card"><div class="tile" style="background:#bf5af2">⚒</div><h3>Developer files</h3>
+        <p>Xcode DerivedData and archives, npm, pip, Yarn, Gradle, NuGet, Cargo and Go caches, <code>node_modules</code>.</p></div>
+      <div class="card"><div class="tile" style="background:#ff9f0a">⌕</div><h3>Large and old files</h3>
+        <p>Big files anywhere in your home folder and downloads you haven't opened in months. You set the limits.</p></div>
+      <div class="card"><div class="tile" style="background:#64d2ff">⧉</div><h3>Duplicates</h3>
+        <p>Byte-for-byte identical files. One copy of each always stays, so you can't remove every copy by mistake.</p></div>
+      <div class="card"><div class="tile" style="background:#ff375f">⏻</div><h3>Background items</h3>
+        <p>Everything that starts on its own, with the app it belongs to. Broken ones are flagged. Turn any of them off.</p></div>
+      <div class="card"><div class="tile" style="background:#ff9f0a">☕︎</div><h3>Homebrew</h3>
+        <p>Your casks and formulae, updates, old versions to clean up, and apps Homebrew thinks are installed but aren't.</p></div>
+      <div class="card"><div class="tile" style="background:#30d158">✓</div><h3>Menu bar</h3>
+        <p>Free space at a glance, the Trash one click away, and a warning when your disk is almost full.</p></div>
+      <div class="card"><div class="tile" style="background:#8e8e93">⛨</div><h3>Safe by design</h3>
+        <p>One safety policy checks every file: nothing from Keychains, iCloud Drive, Mail or macOS itself, ever.</p></div>
+    </div>
+
+    <div class="shot" style="margin-top:56px"><img src="images/storage-start.png" alt="Ferah on macOS 26 with Liquid Glass" width="1800" height="1179" loading="lazy"></div>
+    <p class="small" style="text-align:center">Built for macOS 26 and later with Liquid Glass, and still at home on macOS 15. English and Turkish.</p>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <h2>Install Ferah</h2>
+    <p class="sub">Two ways, both free. Ferah is signed with a Developer ID and notarized by Apple, so it opens without warnings.</p>
+    <ol class="steps">
+      <li><h3>With Homebrew</h3>
+        <p>If you use <a href="https://brew.sh">Homebrew</a>, one command installs Ferah and <code>brew upgrade</code> keeps it up to date:</p>
+        <pre><code>brew install --cask vhurkus/tap/ferah</code></pre></li>
+      <li><h3>Or download the DMG</h3>
+        <p>Get the latest <code>Ferah-x.y.z.dmg</code> from <a href="https://github.com/vhurkus/ferah/releases/latest">GitHub Releases</a>, open it and drag Ferah to Applications.</p></li>
+      <li><h3>Give Ferah Full Disk Access (recommended)</h3>
+        <p>Without it macOS hides some folders, so sizes come out smaller than they are. Open System Settings › Privacy &amp; Security › Full Disk Access and turn on Ferah. Ferah's overview walks you through it and reopens itself when you're done.</p></li>
+      <li><h3>Allow the prompts when they come up</h3>
+        <p>macOS may ask to let Ferah control Finder (used for items that need your password, like apps from the App Store) and to send notifications (used when an app you trash leaves files behind, or when space runs low).</p></li>
+      <li><h3>Scan</h3>
+        <p>Press <strong>Scan</strong> (⌘R). Nothing is removed until you check it and confirm. Removed items land in the Trash; space is freed when you empty it.</p></li>
+    </ol>
+    <p class="small">To uninstall Ferah itself: <code>brew uninstall --cask ferah</code>, or drag it to the Trash.</p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <h2>Questions</h2>
+    <details open><summary>Is Ferah free?</summary><p>Yes. Ferah is free and open source under the MIT license, with no subscriptions, ads or in-app purchases.</p></details>
+    <details><summary>Does Ferah delete files permanently?</summary><p>No. Everything Ferah removes goes to the Trash, where Finder's Put Back still works. Space is freed when you empty the Trash, which Ferah only does when you ask and confirm.</p></details>
+    <details><summary>How do I completely uninstall an app on Mac?</summary><p>Dragging an app to the Trash leaves its files in <code>~/Library</code>. Pick the app in Ferah's Applications and it lists the app's containers, caches, preferences, saved state, launch agents and files in <code>/Library</code>, preselecting those that provably belong to it. If you already dragged an app to the Trash, Ferah notices and offers what it left behind.</p></details>
+    <details><summary>What is System Data on Mac, and how do I reduce it?</summary><p>System Data includes Time Machine local snapshots, Xcode simulator runtimes, iPhone and iPad backups, caches and Messages attachments. Ferah's System Data view lists the parts you can act on and removes each one with the tool macOS expects: <code>tmutil</code> for snapshots, <code>simctl</code> for simulators, the Trash for backups.</p></details>
+    <details><summary>Is it safe?</summary><p>Every removal passes one policy you can read in the source: nothing outside your home folder except third-party apps and their leftovers in /Library, nothing in Keychains, iCloud Drive, Mail or Messages, nothing that belongs to macOS or Apple's apps. Items you can't move yourself go through Finder, which asks for your password.</p></details>
+    <details><summary>Why isn't Ferah on the Mac App Store?</summary><p>Mac App Store apps must run in a sandbox and can't ask for administrator rights, so they can't remove apps' leftovers or measure the whole disk. Ferah is signed with a Developer ID and notarized by Apple instead.</p></details>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Ferah · MIT License · © 2026 Hüseyin Yücel</span>
+    <span><a href="https://github.com/vhurkus/ferah">Source on GitHub</a> · <a href="https://github.com/vhurkus/ferah/issues">Report an issue</a> · <a href="tr/" hreflang="tr" lang="tr">Türkçe</a></span>
+  </div>
+</footer>
+</body>
+</html>

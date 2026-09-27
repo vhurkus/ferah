@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ferah: Ücretsiz Mac Temizleme ve Uygulama Kaldırma Programı</title>
+<meta name="description" content="Ferah, ücretsiz ve açık kaynak bir Mac temizleme programı. Uygulamaları tüm artıklarıyla kaldır, diskini neyin doldurduğunu gör, Sistem Verileri'ni, önbellekleri ve yinelenen dosyaları temizle. Hiçbir şey kalıcı olarak silinmez.">
+<link rel="canonical" href="https://vhurkus.github.io/ferah/tr/">
+<link rel="alternate" hreflang="en" href="https://vhurkus.github.io/ferah/">
+<link rel="alternate" hreflang="tr" href="https://vhurkus.github.io/ferah/tr/">
+<link rel="alternate" hreflang="x-default" href="https://vhurkus.github.io/ferah/">
+<link rel="icon" type="image/png" href="../images/favicon.png">
+<link rel="apple-touch-icon" href="../images/icon.png">
+<meta name="theme-color" content="#16161a">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ferah">
+<meta property="og:title" content="Ferah: Ücretsiz Mac Temizleme ve Uygulama Kaldırma">
+<meta property="og:description" content="Mac uygulamalarını tamamen kaldır, diskini neyin doldurduğunu gör, Sistem Verileri'ni temizle. Ücretsiz, açık kaynak ve her şey Çöp Kutusu'na gider.">
+<meta property="og:url" content="https://vhurkus.github.io/ferah/tr/">
+<meta property="og:image" content="https://vhurkus.github.io/ferah/images/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Ferah",
+  "description": "Dosyaları yalnızca Çöp Kutusu'na taşıyan, ücretsiz ve açık kaynak Mac temizleme ve uygulama kaldırma programı.",
+  "inLanguage": "tr",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "macOS 15 veya üstü",
+  "softwareVersion": "0.3.0",
+  "url": "https://vhurkus.github.io/ferah/tr/",
+  "downloadUrl": "https://github.com/vhurkus/ferah/releases/latest",
+  "screenshot": "https://vhurkus.github.io/ferah/images/overview.png",
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TRY" },
+  "author": { "@type": "Person", "name": "Hüseyin Yücel", "url": "https://github.com/vhurkus" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "inLanguage": "tr",
+  "mainEntity": [
+    {"@type": "Question", "name": "Ferah ücretsiz mi?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Evet. Ferah MIT lisansıyla ücretsiz ve açık kaynaktır; abonelik, reklam ya da uygulama içi satın alma yoktur."}},
+    {"@type": "Question", "name": "Ferah dosyaları kalıcı olarak siler mi?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Hayır. Ferah'ın kaldırdığı her şey Çöp Kutusu'na gider ve Finder'daki Geri Koy çalışmaya devam eder. Alan, Çöp Kutusu'nu boşalttığında açılır."}},
+    {"@type": "Question", "name": "Mac'te bir uygulama tamamen nasıl kaldırılır?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Uygulamayı Çöp Kutusu'na sürüklemek, dosyalarını ~/Library içinde bırakır. Ferah uygulamanın kaplarını, önbelleklerini, tercihlerini, arka plan servislerini ve /Library'deki dosyalarını bulur; kesin olarak ona ait olanları seçili getirir ve uygulamayla birlikte Çöp Kutusu'na taşır. Kendi sürüklediğin uygulamaları da fark eder."}},
+    {"@type": "Question", "name": "Mac'te Sistem Verileri nedir, nasıl azaltılır?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Sistem Verileri; Time Machine yerel anlık görüntülerini, Xcode simülatörlerini, iPhone ve iPad yedeklerini, önbellekleri ve Mesajlar eklerini içerir. Ferah üzerinde işlem yapabileceğin kısımları listeler ve her birini macOS'in beklediği araçla kaldırır: anlık görüntüler için tmutil, simülatörler için simctl."}},
+    {"@type": "Question", "name": "Ferah neden Mac App Store'da yok?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Mac App Store uygulamaları sandbox içinde çalışmak zorundadır ve yönetici yetkisi isteyemez; bu yüzden uygulama artıklarını kaldıramaz ya da diskin tamamını ölçemez. Ferah bunun yerine Developer ID ile imzalanır ve Apple tarafından onaylanır (notarize)."}}
+  ]
+}
+</script>
+
+<style>
+:root {
+  --bg: #fbfbfd; --fg: #1d1d1f; --muted: #5f5f66; --card: #ffffff; --line: rgba(0,0,0,.08);
+  --accent: #0a84ff; --accent-fg: #fff; --code: #f2f2f5;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #16161a; --fg: #f5f5f7; --muted: #a1a1aa; --card: #1f1f24; --line: rgba(255,255,255,.08); --code: #26262c; }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; }
+nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--fg); }
+nav .brand img { width: 30px; height: 30px; }
+nav .links { display: flex; gap: 20px; font-size: 15px; }
+nav .links a { color: var(--muted); white-space: nowrap; }
+@media (max-width: 640px) { nav .links a.optional { display: none; } nav .links { gap: 14px; } }
+body { overflow-x: hidden; }
+header.hero { position: relative; text-align: center; padding: 56px 0 24px; overflow: hidden; }
+.glow { position: absolute; inset: -20% -10% auto; height: 520px; z-index: -1; filter: blur(90px); opacity: .55;
+  background: radial-gradient(40% 50% at 30% 40%, #5e5ce6, transparent), radial-gradient(35% 45% at 70% 55%, #30b0c7, transparent); }
+.hero img.icon { width: 112px; height: 112px; }
+h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.08; letter-spacing: -.02em; margin: 18px 0 14px; }
+.lead { font-size: clamp(18px, 2.4vw, 21px); color: var(--muted); max-width: 720px; margin: 0 auto 28px; }
+.cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-weight: 600; font-size: 16px; }
+.btn.primary { background: var(--accent); color: var(--accent-fg); }
+.btn.secondary { background: var(--card); color: var(--fg); border: 1px solid var(--line); }
+.btn:hover { text-decoration: none; filter: brightness(1.06); }
+.small { font-size: 14px; color: var(--muted); margin-top: 14px; }
+.shot { margin: 40px auto 0; max-width: 1000px; }
+.shot img { width: 100%; height: auto; display: block; }
+section { padding: 56px 0; }
+h2 { font-size: clamp(26px, 4vw, 36px); letter-spacing: -.015em; margin: 0 0 10px; }
+h3 { font-size: 20px; margin: 0 0 6px; }
+.sub { color: var(--muted); margin: 0 0 32px; max-width: 700px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+.card p { margin: 0; color: var(--muted); font-size: 16px; }
+.tile { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font-size: 21px; margin-bottom: 12px; color: #fff; }
+.feature { display: grid; grid-template-columns: 1fr 1.25fr; gap: 36px; align-items: center; margin-top: 44px; }
+.feature.reverse { grid-template-columns: 1.25fr 1fr; }
+.feature.reverse .text { order: 2; }
+.feature img { width: 100%; height: auto; }
+.feature ul { color: var(--muted); padding-left: 20px; margin: 12px 0 0; }
+.feature li { margin: 6px 0; }
+@media (max-width: 800px) { .feature, .feature.reverse { grid-template-columns: 1fr; } .feature.reverse .text { order: 0; } }
+pre, code { font: 14.5px/1.5 ui-monospace, "SF Mono", Menlo, monospace; }
+pre { background: var(--code); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 0; }
+code { background: var(--code); border-radius: 6px; padding: 1px 6px; }
+pre code { background: none; padding: 0; }
+ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 18px; }
+ol.steps li { counter-increment: s; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px 20px 70px; position: relative; }
+ol.steps li::before { content: counter(s); position: absolute; left: 22px; top: 20px; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; }
+ol.steps p { margin: 4px 0 0; color: var(--muted); }
+details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; margin-bottom: 12px; }
+summary { cursor: pointer; font-weight: 600; }
+details p { color: var(--muted); margin: 10px 0 0; }
+footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
+footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="brand" href="./"><img src="../images/icon.png" alt="" width="30" height="30">Ferah</a>
+    <div class="links">
+      <a class="optional" href="#ozellikler">Özellikler</a>
+      <a class="optional" href="#kurulum">Kurulum</a>
+      <a class="optional" href="#sss">SSS</a>
+      <a href="https://github.com/vhurkus/ferah">GitHub</a>
+      <a href="../" hreflang="en" lang="en">English</a>
+    </div>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="glow" aria-hidden="true"></div>
+  <div class="wrap">
+    <img class="icon" src="../images/icon.png" alt="Ferah uygulama simgesi" width="112" height="112">
+    <h1>Ne yaptığını gösteren Mac temizleyici</h1>
+    <p class="lead">Ferah uygulamaları tüm artıklarıyla kaldırır, diskini neyin doldurduğunu gösterir ve Sistem Verileri'ni temizler. Her dosyanın neden güvenle silinebileceğini söyler ve hiçbir şeyi kalıcı olarak silmez: her şey Çöp Kutusu'na gider.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/vhurkus/ferah/releases/latest">Mac için İndir</a>
+      <a class="btn secondary" href="#kurulum">Homebrew ile Kur</a>
+    </div>
+    <p class="small">Ücretsiz ve açık kaynak · macOS 15 veya üstü · Apple tarafından onaylı (notarize)</p>
+    <div class="shot"><img src="../images/overview.png" alt="Ferah genel bakış: kaldırılabilir alan, Çöp Kutusu ve dört temizlik modülü" width="1800" height="1179"></div>
+  </div>
+</header>
+
+<main>
+<section id="ozellikler">
+  <div class="wrap">
+    <h2>Bir Mac temizleyicinin yapması gereken her şey</h2>
+    <p class="sub">Yapmaması gerekenleri de yapmaz: sahte hızlandırma yok, bellek "temizleme" yok, uygulamaların dil dosyalarını silmek yok.</p>
+
+    <div class="feature">
+      <div class="text">
+        <h3>Uygulamaları tamamen kaldır</h3>
+        <p class="sub" style="margin:0">Uygulamayı Çöp'e sürüklemek verisini geride bırakır. Ferah hepsini bulur.</p>
+        <ul>
+          <li><code>~/Library</code> içindeki kaplar, önbellekler, tercihler, kayıtlı durum, betikler ve çökme raporları</li>
+          <li><code>/Library</code> içindeki arka plan servisleri ve yardımcı araçlar</li>
+          <li>Yalnızca kesin olarak uygulamaya ait dosyalar seçili gelir; tahminler sana bırakılır</li>
+          <li>Kendin Çöp'e sürüklediğin uygulamaları fark eder, artıklarını önerir</li>
+          <li>Çoktan sildiğin uygulamaların artıklarını bulur</li>
+          <li>Uygulamaları boyuta ya da son kullanıma göre sırala</li>
+        </ul>
+      </div>
+      <img src="../images/uninstall.png" alt="Ferah ile Maccy'yi kaldırma: uygulama, kabı, önbellekleri, betikleri ve tercihleri" width="1800" height="1179" loading="lazy">
+    </div>
+
+    <div class="feature reverse">
+      <div class="text">
+        <h3>Diskini neyin doldurduğunu gör</h3>
+        <p class="sub" style="margin:0">Ev klasörün, uygulamalar, /Library ve Homebrew tek geçişte ölçülür.</p>
+        <ul>
+          <li>Herhangi bir klasörü aç, içindekileri en büyükten küçüğe gör</li>
+          <li>Her şeyi doğrudan listeden Çöp Kutusu'na taşı</li>
+          <li>macOS'in kendine ayırdığı kısım ayrı gösterilir, asla dokunulmaz</li>
+        </ul>
+      </div>
+      <img src="../images/storage.png" alt="Ferah depolama görünümü: Library içindeki klasörler boyuta göre" width="1800" height="1179" loading="lazy">
+    </div>
+
+    <div class="grid" style="margin-top:52px">
+      <div class="card"><div class="tile" style="background:#a2845e">▤</div><h3>Sistem Verileri, açıklamalı</h3>
+        <p>Time Machine yerel anlık görüntüleri, Xcode simülatörleri ve iPhone yedekleri, her biri macOS'in beklediği şekilde kaldırılır.</p></div>
+      <div class="card"><div class="tile" style="background:#0a84ff">⇣</div><h3>Önbellek ve loglar</h3>
+        <p>Uygulamaların kendiliğinden yeniden oluşturduğu önbellekler ve eski loglar. Her öğe neden güvenli olduğunu söyler.</p></div>
+      <div class="card"><div class="tile" style="background:#bf5af2">⚒</div><h3>Geliştirici dosyaları</h3>
+        <p>Xcode DerivedData ve arşivleri; npm, pip, Yarn, Gradle, NuGet, Cargo ve Go önbellekleri; <code>node_modules</code>.</p></div>
+      <div class="card"><div class="tile" style="background:#ff9f0a">⌕</div><h3>Büyük ve eski dosyalar</h3>
+        <p>Ev klasörünün her yerindeki büyük dosyalar ve aylardır açmadığın indirmeler. Sınırları sen belirlersin.</p></div>
+      <div class="card"><div class="tile" style="background:#64d2ff">⧉</div><h3>Yinelenen dosyalar</h3>
+        <p>Byte byte aynı dosyalar. Her grubun bir kopyası mutlaka kalır; yanlışlıkla hepsini silemezsin.</p></div>
+      <div class="card"><div class="tile" style="background:#ff375f">⏻</div><h3>Arka plan öğeleri</h3>
+        <p>Kendiliğinden başlayan her şey, ait olduğu uygulamayla birlikte. Bozuk olanlar işaretlenir, istediğini kapatırsın.</p></div>
+      <div class="card"><div class="tile" style="background:#ff9f0a">☕︎</div><h3>Homebrew</h3>
+        <p>Cask ve formula'ların, güncellemeler, temizlenebilecek eski sürümler ve Homebrew'un kurulu sandığı ama olmayan uygulamalar.</p></div>
+      <div class="card"><div class="tile" style="background:#30d158">✓</div><h3>Menü çubuğu</h3>
+        <p>Boş alan bir bakışta, Çöp Kutusu bir tık ötede ve disk dolmak üzereyken uyarı.</p></div>
+      <div class="card"><div class="tile" style="background:#8e8e93">⛨</div><h3>Güvenli tasarım</h3>
+        <p>Her dosya tek bir güvenlik kuralından geçer: Anahtar Zinciri, iCloud Drive, Mail ya da macOS'in kendisinden hiçbir şey silinmez.</p></div>
+    </div>
+
+    <div class="shot" style="margin-top:56px"><img src="../images/storage-start.png" alt="macOS 26 üzerinde Liquid Glass görünümüyle Ferah" width="1800" height="1179" loading="lazy"></div>
+    <p class="small" style="text-align:center">macOS 26 ve sonrası için Liquid Glass ile tasarlandı, macOS 15'te de çalışır. Türkçe ve İngilizce.</p>
+  </div>
+</section>
+
+<section id="kurulum">
+  <div class="wrap">
+    <h2>Ferah'ı kur</h2>
+    <p class="sub">İki yol var, ikisi de ücretsiz. Ferah Developer ID ile imzalı ve Apple tarafından onaylı olduğu için uyarı vermeden açılır.</p>
+    <ol class="steps">
+      <li><h3>Homebrew ile</h3>
+        <p><a href="https://brew.sh">Homebrew</a> kullanıyorsan tek komut Ferah'ı kurar, <code>brew upgrade</code> da güncel tutar:</p>
+        <pre><code>brew install --cask vhurkus/tap/ferah</code></pre></li>
+      <li><h3>Ya da DMG'yi indir</h3>
+        <p><a href="https://github.com/vhurkus/ferah/releases/latest">GitHub Releases</a> sayfasından en son <code>Ferah-x.y.z.dmg</code> dosyasını indir, aç ve Ferah'ı Uygulamalar klasörüne sürükle.</p></li>
+      <li><h3>Ferah'a Tam Disk Erişimi ver (önerilir)</h3>
+        <p>Bu izin olmadan macOS bazı klasörleri gizler ve boyutlar olduğundan küçük çıkar. Sistem Ayarları › Gizlilik ve Güvenlik › Tam Disk Erişimi'ni aç ve Ferah'ı etkinleştir. Ferah'ın Genel Bakış ekranı seni adım adım yönlendirir ve bitince kendini yeniden başlatır.</p></li>
+      <li><h3>Çıkan izin pencerelerini onayla</h3>
+        <p>macOS, Ferah'ın Finder'ı kontrol etmesine izin isteyebilir (App Store uygulamaları gibi parola gerektiren öğeler için) ve bildirim izni isteyebilir (Çöp'e attığın bir uygulama geride dosya bıraktığında ya da yer azaldığında haber vermek için).</p></li>
+      <li><h3>Tara</h3>
+        <p><strong>Tara</strong>'ya bas (⌘R). Sen işaretleyip onaylamadan hiçbir şey kaldırılmaz. Kaldırılanlar Çöp Kutusu'na gider; alan, Çöp'ü boşalttığında açılır.</p></li>
+    </ol>
+    <p class="small">Ferah'ı kaldırmak için: <code>brew uninstall --cask ferah</code> ya da uygulamayı Çöp Kutusu'na sürükle.</p>
+  </div>
+</section>
+
+<section id="sss">
+  <div class="wrap">
+    <h2>Sık sorulan sorular</h2>
+    <details open><summary>Ferah ücretsiz mi?</summary><p>Evet. Ferah MIT lisansıyla ücretsiz ve açık kaynaktır; abonelik, reklam ya da uygulama içi satın alma yoktur.</p></details>
+    <details><summary>Ferah dosyaları kalıcı olarak siler mi?</summary><p>Hayır. Ferah'ın kaldırdığı her şey Çöp Kutusu'na gider ve Finder'daki Geri Koy çalışmaya devam eder. Alan, Çöp Kutusu'nu boşalttığında açılır; Ferah bunu yalnızca sen isteyip onayladığında yapar.</p></details>
+    <details><summary>Mac'te bir uygulama tamamen nasıl kaldırılır?</summary><p>Uygulamayı Çöp Kutusu'na sürüklemek, dosyalarını <code>~/Library</code> içinde bırakır. Ferah'ın Uygulamalar bölümünde uygulamayı seç: kaplarını, önbelleklerini, tercihlerini, kayıtlı durumunu, arka plan servislerini ve <code>/Library</code>'deki dosyalarını listeler, kesin olarak ona ait olanları seçili getirir. Uygulamayı zaten Çöp'e sürüklediysen Ferah bunu fark eder ve geride bıraktıklarını önerir.</p></details>
+    <details><summary>Mac'te Sistem Verileri nedir, nasıl azaltılır?</summary><p>Sistem Verileri; Time Machine yerel anlık görüntülerini, Xcode simülatörlerini, iPhone ve iPad yedeklerini, önbellekleri ve Mesajlar eklerini içerir. Ferah'ın Sistem Verisi bölümü üzerinde işlem yapabileceğin kısımları listeler ve her birini macOS'in beklediği araçla kaldırır: anlık görüntüler için <code>tmutil</code>, simülatörler için <code>simctl</code>, yedekler için Çöp Kutusu.</p></details>
+    <details><summary>Güvenli mi?</summary><p>Her silme işlemi, kaynak kodda okuyabileceğin tek bir güvenlik kuralından geçer: üçüncü taraf uygulamalar ve onların /Library'deki artıkları dışında ev klasörünün dışından hiçbir şey; Anahtar Zinciri, iCloud Drive, Mail ya da Mesajlar'dan hiçbir şey; macOS'e ya da Apple uygulamalarına ait hiçbir şey silinmez. Kendin taşıyamayacağın öğeler Finder üzerinden gider ve Finder parolanı sorar.</p></details>
+    <details><summary>Ferah neden Mac App Store'da yok?</summary><p>Mac App Store uygulamaları sandbox içinde çalışmak zorundadır ve yönetici yetkisi isteyemez; bu yüzden uygulama artıklarını kaldıramaz ya da diskin tamamını ölçemez. Ferah bunun yerine Developer ID ile imzalanır ve Apple tarafından onaylanır.</p></details>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Ferah · MIT Lisansı · © 2026 Hüseyin Yücel</span>
+    <span><a href="https://github.com/vhurkus/ferah">GitHub'da kaynak kod</a> · <a href="https://github.com/vhurkus/ferah/issues">Sorun bildir</a> · <a href="../" hreflang="en" lang="en">English</a></span>
+  </div>
+</footer>
+</body>
+</html>

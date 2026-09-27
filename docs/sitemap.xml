@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://vhurkus.github.io/ferah/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vhurkus.github.io/ferah/"/>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vhurkus.github.io/ferah/tr/"/>
+  </url>
+  <url>
+    <loc>https://vhurkus.github.io/ferah/tr/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vhurkus.github.io/ferah/"/>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vhurkus.github.io/ferah/tr/"/>
+  </url>
+</urlset>

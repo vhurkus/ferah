@@ -482,7 +482,8 @@ private struct AppUninstallView: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Space.xxs) {
                 Text(verbatim: app.name).font(.title2)
-                Text(verbatim: [app.version, app.bundleIdentifier, app.url.path].compactMap { $0 }.joined(separator: "  ·  "))
+                Text(verbatim: [app.version, app.bundleIdentifier, DisplayNames.abbreviated(app.url, home: model.home)]
+                    .compactMap { $0 }.joined(separator: "  ·  "))
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .font(.callout)
