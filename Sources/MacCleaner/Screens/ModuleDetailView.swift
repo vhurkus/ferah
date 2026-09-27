@@ -43,12 +43,35 @@ struct ModuleDetailView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            header
-                .padding(Metrics.windowPadding)
-            content
+        Group {
+            if result == nil {
+                // Before the first scan there's nothing to list: one screen that explains and starts it.
+                EmptyStateHero(
+                    symbol: kind.symbol, tint: kind.tint, title: Text(kind.title), message: Text(kind.explanation),
+                    places: kind.places, labels: kind.expectedLabels,
+                    actionTitle: isScanning ? "Scanning…" : "Start Scan", isWorking: isScanning
+                ) {
+                    model.scan([kind])
+                }
+                .disabled(model.isScanning && !isScanning)
+            } else if let result, result.items.isEmpty, !isScanning {
+                EmptyStateHero(
+                    symbol: "checkmark.seal.fill", tint: .green, title: Text("All clean"),
+                    message: Text("Nothing significant to remove was found."),
+                    actionTitle: "Scan Again"
+                ) {
+                    model.scan([kind])
+                }
+                .disabled(model.isScanning)
+            } else {
+                VStack(alignment: .leading, spacing: 0) {
+                    header
+                        .padding(Metrics.windowPadding)
+                    content
+                }
+                .modifier(SearchableWhen(isEnabled: !(result?.items.isEmpty ?? true), text: $filter))
+            }
         }
-        .searchable(text: $filter, placement: .toolbar, prompt: Text("Search"))
         .onChange(of: result?.items.map(\.url)) { _, urls in
             // Keep only checks that still point at listed items.
             checked.formIntersection(Set(urls ?? []))
@@ -111,27 +134,6 @@ struct ModuleDetailView: View {
         } else if isScanning {
             ProgressView("Scanning")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if result != nil {
-            ContentUnavailableView {
-                Label("Nothing found", systemImage: "checkmark.seal")
-            } description: {
-                Text("Nothing significant to remove was found.")
-            }
-        } else {
-            ContentUnavailableView {
-                Label {
-                    Text(kind.title)
-                } icon: {
-                    IconTile(symbol: kind.symbol, tint: kind.tint, size: 56)
-                }
-            } description: {
-                Text("Scan to see what this module finds.")
-            } actions: {
-                Button("Scan") { model.scan([kind]) }
-                    .prominentButtonStyle()
-                    .controlSize(.large)
-                    .disabled(model.isScanning)
-            }
         }
     }
 
@@ -159,5 +161,19 @@ enum OpenApps {
             }?.localizedName
         }
         return Array(Set(names)).sorted()
+    }
+}
+
+/// Search only makes sense once there's a list to search.
+private struct SearchableWhen: ViewModifier {
+    let isEnabled: Bool
+    @Binding var text: String
+
+    func body(content: Content) -> some View {
+        if isEnabled {
+            content.searchable(text: $text, placement: .toolbar, prompt: Text("Search"))
+        } else {
+            content
+        }
     }
 }

@@ -52,16 +52,16 @@ struct AppsView: View {
     var body: some View {
         Group {
             if model.results[.apps] == nil {
-                ContentUnavailableView {
-                    Label("Applications", systemImage: ModuleKind.apps.symbol)
-                } description: {
-                    Text(ModuleKind.apps.explanation)
-                } actions: {
-                    Button("Scan") { model.scan([.apps]) }
-                        .prominentButtonStyle()
-                        .controlSize(.large)
-                        .disabled(model.isScanning)
+                EmptyStateHero(
+                    symbol: ModuleKind.apps.symbol, tint: ModuleKind.apps.tint, title: Text(ModuleKind.apps.title),
+                    message: Text("Remove apps together with the files they leave in your Library, and clean up after apps you've already deleted."),
+                    places: ModuleKind.apps.places,
+                    actionTitle: model.scanning.contains(.apps) ? "Scanning…" : "Start Scan",
+                    isWorking: model.scanning.contains(.apps)
+                ) {
+                    model.scan([.apps])
                 }
+                .disabled(model.isScanning && !model.scanning.contains(.apps))
             } else {
                 HStack(spacing: 0) {
                     appList

@@ -19,19 +19,12 @@ struct StorageView: View {
             } else if let progress = model.storageProgress {
                 analyzing(progress)
             } else {
-                ContentUnavailableView {
-                    Label {
-                        Text("Storage")
-                    } icon: {
-                        IconTile(symbol: "chart.pie.fill", tint: .indigo, size: 56)
-                    }
-                } description: {
-                    Text("See which folders take up space on your Mac, and open any of them to look deeper.")
-                } actions: {
-                    Button("Analyze Storage", action: model.analyzeStorage)
-                        .prominentButtonStyle()
-                        .controlSize(.large)
-                }
+                EmptyStateHero(
+                    symbol: "chart.pie.fill", tint: .indigo, title: Text("Storage"),
+                    message: Text("See which folders take up space on your Mac, and open any of them to look deeper."),
+                    places: ["Your home folder", "Applications", "/Library", "/opt, /usr/local"],
+                    actionTitle: "Analyze Storage", action: model.analyzeStorage
+                )
             }
         }
         .confirmationDialog(

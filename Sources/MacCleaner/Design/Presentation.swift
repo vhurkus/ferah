@@ -69,6 +69,16 @@ extension ModuleKind {
         }
     }
 
+    /// Where the module looks, in a few words each.
+    var places: [LocalizedStringKey] {
+        switch self {
+        case .caches: ["~/Library/Caches", "~/Library/Logs"]
+        case .developer: ["Xcode build data", "npm, pip, Yarn, Gradle, NuGet…", "node_modules", "Docker"]
+        case .largeFiles: ["Every folder in your home", "Old downloads", "Limits in Settings"]
+        case .apps: ["/Applications", "~/Applications", "Their files in Library", "Removed apps' leftovers"]
+        }
+    }
+
     func countText(_ count: Int) -> Text {
         switch self {
         case .caches, .developer: Text("\(count) items")

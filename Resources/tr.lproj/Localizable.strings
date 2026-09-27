@@ -167,3 +167,19 @@
 "Some folders only macOS can read, so they're counted under macOS and other data." = "Bazı klasörleri yalnızca macOS okuyabiliyor, bu yüzden macOS ve diğer veriler altında sayıldılar.";
 "Actions for %@" = "%@ için işlemler";
 "This folder is empty" = "Bu klasör boş";
+
+/* Empty states */
+"Start Scan" = "Taramayı Başlat";
+"Scanning…" = "Taranıyor…";
+"All clean" = "Her şey temiz";
+"Remove apps together with the files they leave in your Library, and clean up after apps you've already deleted." = "Uygulamaları Library'de bıraktıkları dosyalarla birlikte kaldır, daha önce sildiğin uygulamaların artıklarını da temizle.";
+"Xcode build data" = "Xcode derleme verileri";
+"npm, pip, Yarn, Gradle, NuGet…" = "npm, pip, Yarn, Gradle, NuGet…";
+"node_modules" = "node_modules";
+"Docker" = "Docker";
+"Every folder in your home" = "Ev klasöründeki tüm klasörler";
+"Old downloads" = "Eski indirmeler";
+"Limits in Settings" = "Sınırlar Ayarlar'da";
+"Their files in Library" = "Library'deki dosyaları";
+"Removed apps' leftovers" = "Silinmiş uygulama artıkları";
+"Your home folder" = "Ev klasörün";
