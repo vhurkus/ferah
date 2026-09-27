@@ -1,0 +1,431 @@
+import AppKit
+import CleanerCore
+import SwiftUI
+import UniformTypeIdentifiers
+
+/// App uninstaller: pick an app (or drop one on the window), review it and its leftovers, move them to the Trash.
+struct AppsView: View {
+    let model: AppModel
+
+    @ViewState private var selectedURL: URL?
+    @ViewState private var filter = ""
+    @ViewState private var outcome: TrashOutcome?
+    @ViewState private var isDropTargeted = false
+    @ViewState private var dropRejection: TrashPolicy.Rejection?
+    @ViewState private var sort = AppSort.size
+    @ViewState private var showsOrphans = false
+
+    enum AppSort: String, CaseIterable, Identifiable {
+        case name, size, lastUsed
+        var id: Self { self }
+        var title: LocalizedStringKey {
+            switch self {
+            case .name: "Name"
+            case .size: "Size"
+            case .lastUsed: "Last Used"
+            }
+        }
+    }
+
+    /// An installed app with what the scan measured about it.
+    struct AppEntry: Identifiable {
+        let app: InstalledApp
+        let bytes: Int64
+        let lastUsed: Date?
+        var id: URL { app.url }
+    }
+
+    private var apps: [AppEntry] {
+        let entries = (model.results[.apps]?.items ?? [])
+            .map { AppEntry(app: InstalledApp(url: $0.url), bytes: $0.bytes, lastUsed: $0.lastUsed) }
+            .filter { filter.isEmpty || $0.app.name.localizedCaseInsensitiveContains(filter) }
+        return entries.sorted { a, b in
+            switch sort {
+            case .name: a.app.name.localizedStandardCompare(b.app.name) == .orderedAscending
+            case .size: a.bytes > b.bytes
+            // Least recently used first: those are the candidates for removal. Never opened counts as oldest.
+            case .lastUsed: (a.lastUsed ?? .distantPast) < (b.lastUsed ?? .distantPast)
+            }
+        }
+    }
+
+    var body: some View {
+        Group {
+            if model.results[.apps] == nil {
+                ContentUnavailableView {
+                    Label("Applications", systemImage: ModuleKind.apps.symbol)
+                } description: {
+                    Text(ModuleKind.apps.explanation)
+                } actions: {
+                    Button("Scan") { model.scan([.apps]) }
+                        .prominentButtonStyle()
+                        .controlSize(.large)
+                        .disabled(model.isScanning)
+                }
+            } else {
+                HStack(spacing: 0) {
+                    appList
+                    Divider()
+                    detail
+                }
+            }
+        }
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let url = urls.first(where: { $0.pathExtension == "app" }) else { return false }
+            // Only apps that could actually be removed; otherwise their Library data would be offered alone.
+            if let rejection = TrashPolicy.check(url, home: model.home, applicationRoots: model.applicationRoots) {
+                dropRejection = rejection
+                return false
+            }
+            dropRejection = nil
+            showsOrphans = false
+            selectedURL = url
+            return true
+        } isTargeted: { isDropTargeted = $0 }
+        .overlay {
+            if isDropTargeted {
+                RoundedRectangle(cornerRadius: Metrics.groupRadius)
+                    .strokeBorder(Color.accentColor, lineWidth: 2)
+                    .padding(Space.xs)
+                    .allowsHitTesting(false)
+            }
+        }
+    }
+
+    private var appList: some View {
+        VStack(spacing: 0) {
+            VStack(spacing: Space.s) {
+                TextField("Search Apps", text: $filter)
+                    .textFieldStyle(.roundedBorder)
+                Picker("Sort by", selection: $sort) {
+                    ForEach(AppSort.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .controlSize(.small)
+            }
+            .padding(Space.m)
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    if let orphans = model.orphans, !orphans.items.isEmpty, filter.isEmpty {
+                        OrphansRow(result: orphans, isSelected: showsOrphans) {
+                            showsOrphans = true
+                            selectedURL = nil
+                            dropRejection = nil
+                        }
+                        Divider().padding(.vertical, Space.xs)
+                    }
+                    let entries = apps
+                    let names = Dictionary(grouping: entries, by: \.app.name)
+                    ForEach(entries) { entry in
+                        AppRow(entry: entry, isSelected: entry.app.url == selectedURL,
+                               showsLocation: (names[entry.app.name]?.count ?? 0) > 1) {
+                            selectedURL = entry.app.url
+                            showsOrphans = false
+                            dropRejection = nil
+                        }
+                    }
+                }
+                .padding(.horizontal, Space.s)
+            }
+        }
+        .frame(width: Metrics.appListWidth)
+        .background(.bgContent)
+    }
+
+    @ViewBuilder private var detail: some View {
+        VStack(spacing: 0) {
+            if let outcome {
+                TrashResultBanner(outcome: outcome, model: model) { self.outcome = nil }
+                    .padding([.horizontal, .top], Metrics.windowPadding)
+            }
+            if let dropRejection {
+                DropRejectionNotice(rejection: dropRejection) { self.dropRejection = nil }
+                    .padding([.horizontal, .top], Metrics.windowPadding)
+            }
+            if showsOrphans, let orphans = model.orphans {
+                OrphansView(result: orphans, model: model) { self.outcome = $0 }
+            } else if let selectedURL {
+                AppUninstallView(app: InstalledApp(url: selectedURL), model: model) { outcome in
+                    self.outcome = outcome
+                    if outcome.moved.contains(selectedURL) { self.selectedURL = nil }
+                }
+                .id(selectedURL)
+            } else {
+                ContentUnavailableView {
+                    Label("Choose an app", systemImage: ModuleKind.apps.symbol)
+                } description: {
+                    Text("Pick an app from the list, or drag one here from Finder.")
+                }
+                .frame(maxHeight: .infinity)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// The entry for leftovers of apps that are gone, above the app list.
+private struct OrphansRow: View {
+    let result: ModuleResult
+    let isSelected: Bool
+    let select: () -> Void
+
+    var body: some View {
+        Button(action: select) {
+            HStack(spacing: Space.s) {
+                IconTile(symbol: "questionmark.folder.fill", tint: .gray, size: Metrics.appIconSmall)
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text("Removed apps").lineLimit(1)
+                        Spacer(minLength: Space.xs)
+                        Text(result.totalBytes.byteString)
+                            .font(.callout)
+                            .monospacedDigit()
+                            .foregroundStyle(.textSecondary)
+                    }
+                    Text("\(result.items.count) leftover items")
+                        .font(.caption)
+                        .foregroundStyle(.textSecondary)
+                }
+            }
+            .padding(.horizontal, Space.s)
+            .padding(.vertical, Space.xs + Space.xxs)
+            .contentShape(Rectangle())
+            .background(isSelected ? Color.rowSelected : .clear, in: RoundedRectangle(cornerRadius: Metrics.rowRadius))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+/// Leftovers of apps that are no longer installed. Nothing starts checked: each one is the user's call.
+private struct OrphansView: View {
+    let result: ModuleResult
+    let model: AppModel
+    let finished: (TrashOutcome) -> Void
+
+    @ViewState private var checked: Set<URL> = []
+    @ViewState private var isMoving = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center, spacing: Space.m) {
+                IconTile(symbol: "questionmark.folder.fill", tint: .gray, size: Metrics.appIconLarge)
+                VStack(alignment: .leading, spacing: Space.xxs) {
+                    Text("Leftovers of removed apps").font(.title2)
+                    Text("These are named after apps that aren't on this Mac anymore. Check each one before moving it to the Trash.")
+                        .foregroundStyle(.textSecondary)
+                        .lineLimit(3)
+                }
+            }
+            .padding(Metrics.windowPadding)
+            ItemTable(items: result.items, checked: $checked, home: model.home)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    TrashBar(selected: result.items.filter { checked.contains($0.url) }, isWorking: isMoving) {
+                        Task { await moveChecked() }
+                    }
+                }
+        }
+    }
+
+    private func moveChecked() async {
+        isMoving = true
+        let items = result.items.filter { checked.contains($0.url) }
+        let outcome = await TrashService.moveToTrash(items, home: model.home, applicationRoots: model.applicationRoots)
+        model.forget(outcome.moved)
+        checked.subtract(outcome.moved)
+        isMoving = false
+        finished(outcome)
+    }
+}
+
+/// Why a dropped app can't be uninstalled.
+private struct DropRejectionNotice: View {
+    let rejection: TrashPolicy.Rejection
+    let dismiss: () -> Void
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: Space.s) {
+            Image(systemName: "info.circle")
+                .foregroundStyle(.textSecondary)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: Space.xxs) {
+                Text("This app can't be removed here.")
+                Text(verbatim: rejection.message)
+                    .font(.callout)
+                    .foregroundStyle(.textSecondary)
+            }
+            Spacer(minLength: Space.l)
+            Button(action: dismiss) {
+                Image(systemName: "xmark")
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel(Text("Close"))
+        }
+        .padding(Space.m)
+        .surface()
+    }
+}
+
+private struct AppRow: View {
+    let entry: AppsView.AppEntry
+    let isSelected: Bool
+    /// Another app has the same name, so show which bundle this is.
+    let showsLocation: Bool
+    let select: () -> Void
+
+    @ViewState private var isHovered = false
+
+    private var app: InstalledApp { entry.app }
+
+    var body: some View {
+        Button(action: select) {
+            HStack(spacing: Space.s) {
+                Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
+                    .resizable()
+                    .frame(width: Metrics.appIconSmall, height: Metrics.appIconSmall)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(verbatim: app.name).lineLimit(1)
+                        Spacer(minLength: Space.xs)
+                        Text(entry.bytes.byteString)
+                            .font(.callout)
+                            .monospacedDigit()
+                            .foregroundStyle(.textSecondary)
+                    }
+                    Group {
+                        if showsLocation {
+                            Text(verbatim: app.url.path)
+                                .truncationMode(.head)
+                        } else if let lastUsed = entry.lastUsed {
+                            Text("Last used \(lastUsed.formatted(.relative(presentation: .named)))")
+                        } else {
+                            Text("No usage record")
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.textSecondary)
+                    .lineLimit(1)
+                }
+            }
+            .padding(.horizontal, Space.s)
+            .padding(.vertical, Space.xs + Space.xxs)
+            .contentShape(Rectangle())
+            .background(
+                isSelected ? Color.rowSelected : (isHovered ? Color.rowHover : .clear),
+                in: RoundedRectangle(cornerRadius: Metrics.rowRadius)
+            )
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+/// One app and its leftovers. The app and anything not labelled "Review first" start checked,
+/// because choosing to uninstall is the explicit request; review items stay unchecked.
+private struct AppUninstallView: View {
+    let app: InstalledApp
+    let model: AppModel
+    let finished: (TrashOutcome) -> Void
+
+    @ViewState private var files: ModuleResult?
+    @ViewState private var checked: Set<URL> = []
+    @ViewState private var isMoving = false
+    @ViewState private var isRunning = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            header.padding(Metrics.windowPadding)
+            if let files {
+                ItemTable(items: files.items, checked: $checked, home: model.home)
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        trashBar(files)
+                    }
+            } else {
+                ProgressView("Looking for leftovers")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .task { await load() }
+        .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didTerminateApplicationNotification)) { _ in
+            refreshRunning()
+        }
+        .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didLaunchApplicationNotification)) { _ in
+            refreshRunning()
+        }
+    }
+
+    private func trashBar(_ files: ModuleResult) -> some View {
+        TrashBar(
+            selected: files.items.filter { checked.contains($0.url) },
+            isWorking: isMoving,
+            disabledReason: app.isAppleApp ? "Apps that come with macOS can't be removed."
+                : isRunning ? "Quit the app before removing it." : nil
+        ) {
+            Task { await moveChecked(files) }
+        }
+    }
+
+    private var header: some View {
+        HStack(alignment: .center, spacing: Space.m) {
+            Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
+                .resizable()
+                .frame(width: Metrics.appIconLarge, height: Metrics.appIconLarge)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: Space.xxs) {
+                Text(verbatim: app.name).font(.title2)
+                Text(verbatim: [app.version, app.bundleIdentifier, app.url.path].compactMap { $0 }.joined(separator: "  ·  "))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .font(.callout)
+                    .foregroundStyle(.textSecondary)
+                if let files {
+                    Text("\(files.items.count) items, \(files.totalBytes.byteString)")
+                        .font(.callout)
+                        .monospacedDigit()
+                        .foregroundStyle(.textSecondary)
+                }
+            }
+            Spacer()
+            if isRunning {
+                Button("Quit App") { quitApp() }
+                    .secondaryButtonStyle()
+            }
+        }
+    }
+
+    private func load() async {
+        refreshRunning()
+        let app = app, home = model.home
+        let found = await Task.detached { LeftoverFinder.find(for: app, home: home) }.value
+        files = found
+        // Uninstalling is the explicit request: the app and everything provably its own start checked.
+        checked = Set(found.items.filter { $0.url == app.url || $0.safety != .review }.map(\.url))
+    }
+
+    private var runningApps: [NSRunningApplication] {
+        guard let id = app.bundleIdentifier else { return [] }
+        return NSRunningApplication.runningApplications(withBundleIdentifier: id)
+    }
+
+    private func refreshRunning() {
+        isRunning = !runningApps.isEmpty
+    }
+
+    private func quitApp() {
+        runningApps.forEach { $0.terminate() }
+    }
+
+    private func moveChecked(_ files: ModuleResult) async {
+        isMoving = true
+        let items = files.items.filter { checked.contains($0.url) }
+        let outcome = await TrashService.moveToTrash(items, home: model.home, applicationRoots: model.applicationRoots)
+        model.forget(outcome.moved)
+        self.files = files.removing(outcome.moved)
+        checked.subtract(outcome.moved)
+        isMoving = false
+        finished(outcome)
+    }
+}

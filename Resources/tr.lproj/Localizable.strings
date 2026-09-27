@@ -1,0 +1,169 @@
+/* Sidebar & titles */
+"Overview" = "Genel Bakış";
+"Caches & Logs" = "Önbellek ve Loglar";
+"Developer Files" = "Geliştirici Dosyaları";
+"Large & Old Files" = "Büyük ve Eski Dosyalar";
+"Applications" = "Uygulamalar";
+
+/* Overview */
+"Scan" = "Tara";
+"Cancel" = "İptal";
+"%@ of %@ used" = "%1$@ / %2$@ kullanılıyor";
+"Disk information is unavailable." = "Disk bilgisi alınamadı.";
+"Removable space" = "Kaldırılabilir alan";
+"Nothing significant to remove was found." = "Kaldırılabilir önemli bir şey bulunamadı.";
+"Last scan: %@" = "Son tarama: %@";
+"%@ more to review" = "%@ daha gözden geçirilebilir";
+"Not scanned" = "Taranmadı";
+"Scanning" = "Taranıyor";
+"Not measured" = "Ölçülmez";
+"%lld items" = "%lld öğe";
+"%lld files" = "%lld dosya";
+"%lld apps" = "%lld uygulama";
+
+/* Storage bar */
+"Storage" = "Depolama";
+"Used" = "Kullanılan";
+"Removable %@" = "Kaldırılabilir %@";
+"Free %@" = "Boş %@";
+"%@ used, %@ free, %@ removable" = "%1$@ kullanılıyor, %2$@ boş, %3$@ kaldırılabilir";
+"%@ used, %@ free" = "%1$@ kullanılıyor, %2$@ boş";
+
+/* Safety labels */
+"Rebuilt automatically" = "Yeniden oluşur";
+"Safe to remove" = "Güvenle kaldırılabilir";
+"Review first" = "Gözden geçir";
+"%@ (%lld)" = "%1$@ (%2$lld)";
+
+/* Access */
+"Some folders couldn't be read." = "Bazı klasörler okunamadı.";
+"After granting access, reopen the app and scan again." = "Erişim verdikten sonra uygulamayı yeniden açıp tekrar tara.";
+"Grant Full Disk Access" = "Tam Disk Erişimi Ver";
+
+
+/* Module screens */
+"App caches and logs in your Library. Apps recreate their caches when needed." = "Kitaplık klasöründeki uygulama önbellekleri ve logları. Uygulamalar önbelleklerini gerektiğinde yeniden oluşturur.";
+"Xcode build data, package manager caches, Docker data and node_modules folders in your projects." = "Xcode derleme verileri, paket yöneticisi önbellekleri, Docker verileri ve projelerindeki node_modules klasörleri.";
+"Files of 500 MB or more in Downloads, Desktop, Documents and Movies, and downloads untouched for 6 months." = "İndirilenler, Masaüstü, Belgeler ve Filmler'deki 500 MB ve üstü dosyalar ile 6 aydır değişmeyen indirmeler.";
+"Apps you installed, with the files they leave in your Library." = "Yüklediğin uygulamalar ve Kitaplık klasöründe bıraktıkları dosyalar.";
+"Scan Again" = "Yeniden Tara";
+"Select Rebuilt & Safe" = "Yeniden Oluşan ve Güvenli Olanları Seç";
+"Deselect All" = "Seçimi Kaldır";
+"Nothing found" = "Bir şey bulunamadı";
+"Scan to see what this module finds." = "Bu bölümün neler bulduğunu görmek için tara.";
+"Name" = "Ad";
+"Why" = "Neden";
+"Size" = "Boyut";
+"Modified %@" = "Değiştirilme: %@";
+"Show in Finder" = "Finder'da Göster";
+
+/* Trash */
+"Nothing selected" = "Seçili öğe yok";
+"%lld selected, %@" = "%1$lld seçili, %2$@";
+"Move to Trash (%@)" = "Çöp Kutusu'na Taşı (%@)";
+"Move %lld items to the Trash?" = "%lld öğe Çöp Kutusu'na taşınsın mı?";
+"You can put them back from the Trash. The space is freed when you empty the Trash." = "Çöp Kutusu'ndan geri alabilirsin. Alan, Çöp Kutusu'nu boşalttığında açılır.";
+"Moved %lld items (%@) to the Trash." = "%1$lld öğe (%2$@) Çöp Kutusu'na taşındı.";
+"The space is freed when you empty the Trash." = "Alan, Çöp Kutusu'nu boşalttığında açılır.";
+"%lld items couldn't be moved." = "%lld öğe taşınamadı.";
+"Open Trash" = "Çöp Kutusu'nu Aç";
+"Close" = "Kapat";
+"Details" = "Ayrıntılar";
+"It no longer exists." = "Artık mevcut değil.";
+"It's outside your home folder." = "Ev klasörünün dışında.";
+"This folder is protected." = "Bu klasör korunuyor.";
+"It's part of macOS." = "macOS'in bir parçası.";
+"It belongs to macOS or one of Apple's apps." = "macOS'e ya da bir Apple uygulamasına ait.";
+"Includes %lld checked items hidden by the search." = "Aramanın gizlediği %lld işaretli öğe de dahil.";
+"Some items belong to apps that are open: %@. Quit them first so they don't recreate the files right away." = "Bazı öğeler açık uygulamalara ait: %@. Dosyaları hemen yeniden oluşturmamaları için önce bu uygulamalardan çık.";
+
+/* Apps */
+"Search Apps" = "Uygulama Ara";
+"Choose an app" = "Bir uygulama seç";
+"Pick an app from the list, or drag one here from Finder." = "Listeden bir uygulama seç ya da Finder'dan buraya sürükle.";
+"Quit the app before removing it." = "Kaldırmadan önce uygulamadan çık.";
+"Apps that come with macOS can't be removed." = "macOS ile gelen uygulamalar kaldırılamaz.";
+"This app can't be removed here." = "Bu uygulama buradan kaldırılamaz.";
+"Quit App" = "Uygulamadan Çık";
+"Looking for leftovers" = "Artık dosyalar aranıyor";
+"%lld items, %@" = "%1$lld öğe, %2$@";
+"Search" = "Ara";
+"Move to Trash" = "Çöp Kutusu'na Taşı";
+
+/* Redesign */
+"Scan to see how much space you can get back." = "Ne kadar alan kazanabileceğini görmek için tara.";
+"Stop scanning" = "Taramayı durdur";
+"Scan every module (⌘R)" = "Tüm modülleri tara (⌘R)";
+"App's own data" = "Uygulamanın verisi";
+"Finder couldn't move it." = "Finder bunu taşıyamadı.";
+"The administrator password prompt was cancelled." = "Yönetici parolası penceresi iptal edildi.";
+"Ferah isn't allowed to control Finder. Allow it in System Settings › Privacy & Security › Automation." = "Ferah'ın Finder'ı kontrol etme izni yok. Sistem Ayarları › Gizlilik ve Güvenlik › Otomasyon bölümünden izin ver.";
+"Last Used" = "Son Kullanım";
+"Sort by" = "Sırala";
+"Last used %@" = "Son kullanım: %@";
+"No usage record" = "Kullanım kaydı yok";
+
+"Moving this asks for an administrator password." = "Bunu taşımak yönetici parolası ister.";
+"%lld items need an administrator password. Finder will ask for it once." = "%lld öğe yönetici parolası gerektiriyor. Finder bunu bir kez soracak.";
+"Finder didn't answer in time. Try again and answer Finder's password prompt." = "Finder zamanında yanıt vermedi. Tekrar dene ve Finder'ın parola penceresini yanıtla.";
+
+/* Storage */
+"Storage" = "Depolama";
+"See which folders take up space on your Mac, and open any of them to look deeper." = "Mac'inde hangi klasörlerin yer kapladığını gör, herhangi birini açıp içine bak.";
+"Analyze Storage" = "Depolamayı Analiz Et";
+"Analyze Again" = "Yeniden Analiz Et";
+"Measure all folders again" = "Tüm klasörleri yeniden ölç";
+"Measuring folders…" = "Klasörler ölçülüyor…";
+"%lld files measured" = "%lld dosya ölçüldü";
+"Move “%@” to the Trash?" = "“%@” Çöp Kutusu'na taşınsın mı?";
+"You can put it back from the Trash. The space is freed when you empty the Trash." = "Çöp Kutusu'ndan geri alabilirsin. Alan, Çöp Kutusu'nu boşalttığında açılır.";
+"Some folders couldn't be read, so they're counted under macOS and other data. Grant Full Disk Access to measure them." = "Bazı klasörler okunamadı, bu yüzden macOS ve diğer veriler altında sayıldı. Ölçmek için Tam Disk Erişimi ver.";
+"Back" = "Geri";
+"Mac" = "Mac";
+"Other folders" = "Diğer klasörler";
+"macOS and other data" = "macOS ve diğer veriler";
+"%lld smaller files" = "%lld küçük dosya";
+"macOS, system data, other users and snapshots. Ferah never touches these." = "macOS, sistem verileri, diğer kullanıcılar ve anlık görüntüler. Ferah bunlara hiç dokunmaz.";
+"Move to Trash…" = "Çöp Kutusu'na Taşı…";
+"See what's using space" = "Neyin yer kapladığını gör";
+
+/* Trash */
+"Empty Trash…" = "Çöp Kutusu'nu Boşalt…";
+"Empty the Trash?" = "Çöp Kutusu boşaltılsın mı?";
+"Empty Trash (%@)" = "Çöp Kutusu'nu Boşalt (%@)";
+"Empty Trash" = "Çöp Kutusu'nu Boşalt";
+"Everything in the Trash is deleted permanently. This can't be undone." = "Çöp Kutusu'ndaki her şey kalıcı olarak silinir. Bu geri alınamaz.";
+"The Trash couldn't be emptied." = "Çöp Kutusu boşaltılamadı.";
+"OK" = "Tamam";
+"Trash: %@" = "Çöp Kutusu: %@";
+"Trash" = "Çöp Kutusu";
+"Items you move to the Trash still use space until it's emptied." = "Çöp Kutusu'na taşınan öğeler, Çöp boşaltılana kadar yer kaplamaya devam eder.";
+
+/* Settings */
+"Large files are at least" = "Büyük dosya alt sınırı";
+"Downloads count as old after" = "İndirmeler şu süreden sonra eski sayılır";
+"3 months" = "3 ay";
+"6 months" = "6 ay";
+"1 year" = "1 yıl";
+"Never" = "Hiçbir zaman";
+"Ferah looks in every folder of your home folder except Library. Changes apply the next time you scan." = "Ferah, ev klasöründe Library dışındaki tüm klasörlere bakar. Değişiklikler bir sonraki taramada uygulanır.";
+"Large files in your home folders, and downloads you haven't opened in months. Set the limits in Settings (⌘,)." = "Ev klasörlerindeki büyük dosyalar ve aylardır açmadığın indirmeler. Sınırları Ayarlar'dan (⌘,) belirle.";
+
+/* Orphans */
+"Removed apps" = "Kaldırılmış uygulamalar";
+"%lld leftover items" = "%lld kalıntı";
+"Leftovers of removed apps" = "Kaldırılmış uygulamaların kalıntıları";
+"These are named after apps that aren't on this Mac anymore. Check each one before moving it to the Trash." = "Bunlar artık bu Mac'te olmayan uygulamaların adını taşıyor. Çöp Kutusu'na taşımadan önce her birine göz at.";
+
+/* Full Disk Access */
+"Give Ferah Full Disk Access to see everything" = "Her şeyi görmek için Ferah'a Tam Disk Erişimi ver";
+"Without it, macOS hides some folders (like Mail and other apps' data), so sizes come out smaller than they are." = "Bu izin olmadan macOS bazı klasörleri (Mail ve diğer uygulamaların verileri gibi) gizler, bu yüzden boyutlar olduğundan küçük çıkar.";
+"1. Open Full Disk Access in System Settings." = "1. Sistem Ayarları'nda Tam Disk Erişimi'ni aç.";
+"2. Turn on Ferah. If it's missing, drag Ferah from Finder into the list. If it's already on, remove it with – and add it again." = "2. Ferah'ı aç. Listede yoksa Ferah'ı Finder'dan listeye sürükle. Zaten açıksa – ile kaldırıp yeniden ekle.";
+"3. Reopen Ferah." = "3. Ferah'ı yeniden aç.";
+"Open Settings" = "Ayarları Aç";
+"Show Ferah in Finder" = "Ferah'ı Finder'da Göster";
+"Reopen Ferah" = "Ferah'ı Yeniden Aç";
+"Some folders only macOS can read, so they're counted under macOS and other data." = "Bazı klasörleri yalnızca macOS okuyabiliyor, bu yüzden macOS ve diğer veriler altında sayıldılar.";
+"Actions for %@" = "%@ için işlemler";
+"This folder is empty" = "Bu klasör boş";

@@ -1,0 +1,4 @@
+"NSDesktopFolderUsageDescription" = "Masaüstündeki büyük dosyaları ve node_modules klasörlerini bulmak için.";
+"NSDocumentsFolderUsageDescription" = "Belgelerdeki büyük dosyaları ve node_modules klasörlerini bulmak için.";
+"NSDownloadsFolderUsageDescription" = "İndirilenlerdeki büyük ve eski dosyaları bulmak için.";
+"NSAppleEventsUsageDescription" = "Ferah, yönetici parolası gereken uygulama ve dosyaları Çöp Kutusu'na taşımak ve istediğinde Çöp Kutusu'nu boşaltmak için Finder'dan yardım ister.";
