@@ -36,6 +36,7 @@ Needs the Command Line Tools (Xcode not required).
 scripts/test.sh              # unit tests
 scripts/build-app.sh debug   # build/Ferah.app
 scripts/make-dmg.sh          # release DMG (set NOTARY_PROFILE to notarize)
+scripts/release.sh           # notarize, publish a GitHub release and update the Homebrew tap
 ```
 
 ## Türkçe
