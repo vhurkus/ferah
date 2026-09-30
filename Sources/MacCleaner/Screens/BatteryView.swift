@@ -181,8 +181,10 @@ private struct EnergyList: View {
     private var apps: [(app: NSRunningApplication, power: Double)] {
         var seen: Set<pid_t> = []
         return users.compactMap { use in
+            // Finder is always running and can't be quit; Ferah itself isn't worth listing.
             guard let app = NSRunningApplication(processIdentifier: use.pid), app.activationPolicy == .regular,
-                  app.bundleIdentifier != Bundle.main.bundleIdentifier, seen.insert(use.pid).inserted
+                  app.bundleIdentifier != Bundle.main.bundleIdentifier, app.bundleIdentifier != "com.apple.finder",
+                  seen.insert(use.pid).inserted
             else { return nil }
             return (app, use.power)
         }

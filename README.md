@@ -69,14 +69,17 @@ Your home folder, apps, `/Library`, `/opt` and `/usr/local`, measured in one pas
 
 | | |
 |---|---|
-| **System Data** | Time Machine local snapshots (`tmutil`), Xcode simulators (`simctl`), iPhone and iPad backups, Messages attachments |
+| **System Data** | Time Machine local snapshots (`tmutil`), Xcode simulators (`simctl`), iPhone and iPad backups, forgotten macOS installers, device software (`.ipsw`), extra Xcode copies |
 | **Caches & logs** | App caches that rebuild themselves and old logs, each labelled with why it's safe |
 | **Developer files** | Xcode DerivedData and archives, npm, pip, Yarn, Gradle, NuGet, Cargo, Go caches, `node_modules` |
 | **Large & old files** | Big files anywhere in your home folder and downloads you haven't opened in months; limits in Settings |
 | **Duplicates** | Byte-for-byte identical files; one copy of each always stays |
 | **Background items** | Launch agents and daemons with the app they belong to; broken ones flagged; turn any off |
 | **Homebrew** | Casks and formulae, updates, old versions to clean up, apps Homebrew thinks are installed but aren't |
-| **Menu bar** | Free space at a glance, the Trash, and a warning when the disk is almost full |
+| **Battery health** | Capacity compared to new (as Settings shows it), charge cycles, power draw, apps using the most energy, wear over time |
+| **App updates** | Every app, not just App Store ones: Sparkle feeds, the App Store and Homebrew's catalog; only when you ask |
+| **Maintenance** | Clean up duplicate "Open With" entries, flush DNS, rebuild Spotlight, reset Quick Look thumbnails |
+| **Menu bar** | Free space and battery health at a glance, the Trash, and a warning when the disk is almost full |
 
 Ferah makes no speed-up promises, doesn't "clean" memory and never removes app language files.
 

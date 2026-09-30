@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ferah: Free Mac Cleaner and App Uninstaller (Open Source)</title>
-<meta name="description" content="Ferah is a free, open-source Mac cleaner and app uninstaller. Remove apps with all their leftovers, see what fills your disk, clear System Data, caches and duplicates. Nothing is deleted permanently.">
+<meta name="description" content="Ferah is a free, open-source Mac cleaner and app uninstaller. Remove apps with all their leftovers, see what fills your disk, clear System Data, check battery health and app updates. Nothing is deleted permanently.">
 <link rel="canonical" href="https://vhurkus.github.io/ferah/">
 <link rel="alternate" hreflang="en" href="https://vhurkus.github.io/ferah/">
 <link rel="alternate" hreflang="tr" href="https://vhurkus.github.io/ferah/tr/">
@@ -33,7 +33,7 @@
   "description": "Free, open-source Mac cleaner and app uninstaller that only moves files to the Trash.",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "macOS 15 or later",
-  "softwareVersion": "0.3.1",
+  "softwareVersion": "0.4.0",
   "url": "https://vhurkus.github.io/ferah/",
   "downloadUrl": "https://github.com/vhurkus/ferah/releases/latest",
   "screenshot": "https://vhurkus.github.io/ferah/images/overview.png",
@@ -194,7 +194,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 
     <div class="grid" style="margin-top:52px">
       <div class="card"><div class="tile" style="background:#a2845e">▤</div><h3>System Data, explained</h3>
-        <p>Time Machine local snapshots, Xcode simulators and iPhone backups, each removed the way macOS expects.</p></div>
+        <p>Time Machine local snapshots, Xcode simulators, iPhone backups, forgotten macOS installers and device software, each removed the way macOS expects.</p></div>
       <div class="card"><div class="tile" style="background:#0a84ff">⇣</div><h3>Caches and logs</h3>
         <p>App caches that apps rebuild on their own, and old logs. Every item says why it's safe.</p></div>
       <div class="card"><div class="tile" style="background:#bf5af2">⚒</div><h3>Developer files</h3>
@@ -207,6 +207,12 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <p>Everything that starts on its own, with the app it belongs to. Broken ones are flagged. Turn any of them off.</p></div>
       <div class="card"><div class="tile" style="background:#ff9f0a">☕︎</div><h3>Homebrew</h3>
         <p>Your casks and formulae, updates, old versions to clean up, and apps Homebrew thinks are installed but aren't.</p></div>
+      <div class="card"><div class="tile" style="background:#34c759">▮</div><h3>Battery health</h3>
+        <p>Capacity compared to new, charge cycles, power draw and the apps using the most energy, tracked over time.</p></div>
+      <div class="card"><div class="tile" style="background:#0a84ff">↑</div><h3>App updates</h3>
+        <p>Checks every app, not just App Store ones: Sparkle feeds, the App Store and Homebrew's catalog. Only when you ask.</p></div>
+      <div class="card"><div class="tile" style="background:#8e8e93">⚙︎</div><h3>Maintenance</h3>
+        <p>Clean up duplicate "Open With" entries, flush DNS, rebuild Spotlight, reset thumbnails, each explained.</p></div>
       <div class="card"><div class="tile" style="background:#30d158">✓</div><h3>Menu bar</h3>
         <p>Free space at a glance, the Trash one click away, and a warning when your disk is almost full.</p></div>
       <div class="card"><div class="tile" style="background:#8e8e93">⛨</div><h3>Safe by design</h3>
