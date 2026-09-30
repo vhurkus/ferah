@@ -8,6 +8,7 @@ enum SidebarItem: Hashable {
     case backgroundItems
     case duplicates
     case homebrew
+    case battery
     case module(ModuleKind)
 }
 
@@ -55,6 +56,15 @@ struct ContentView: View {
                 }
                 .badge(model.brewPackages.map { $0.filter(\.isOutdated).count }.flatMap { $0 > 0 ? Text("\($0)") : nil })
                 .tag(SidebarItem.homebrew)
+                if model.battery != nil {
+                    Label {
+                        Text("Battery")
+                    } icon: {
+                        IconTile(symbol: BatteryView.symbol, tint: BatteryView.tint, size: Metrics.sidebarIcon)
+                    }
+                    .badge(model.battery?.maximumCapacityPercent.map { Text("\($0)%") })
+                    .tag(SidebarItem.battery)
+                }
                 Section {
                     ForEach(ModuleKind.allCases) { kind in
                         Label {
@@ -88,6 +98,9 @@ struct ContentView: View {
             case .homebrew:
                 HomebrewView(model: model)
                     .navigationTitle(Text("Homebrew"))
+            case .battery:
+                BatteryView(model: model)
+                    .navigationTitle(Text("Battery"))
             case .module(.apps):
                 AppsView(model: model)
                     .navigationTitle(Text(ModuleKind.apps.title))

@@ -22,6 +22,25 @@ struct MenuBarView: View {
                         .foregroundStyle(.textSecondary)
                 }
             }
+            if let battery = model.battery {
+                Divider()
+                Button {
+                    open(.battery)
+                } label: {
+                    HStack {
+                        Label("Battery \(battery.chargePercent)%", systemImage: battery.isCharging ? "battery.100percent.bolt" : "battery.75percent")
+                        Spacer()
+                        if let capacity = battery.maximumCapacityPercent {
+                            Text("Health \(capacity)% · \(battery.cycleCount) cycles")
+                                .font(.callout)
+                                .monospacedDigit()
+                                .foregroundStyle(.textSecondary)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
             if let bytes = model.trashBytes, bytes > 0 {
                 Divider()
                 HStack {
@@ -62,7 +81,10 @@ struct MenuBarView: View {
         }
         .padding(Space.l)
         .frame(width: 300)
-        .onAppear { model.refreshVolume() }
+        .onAppear {
+            model.refreshVolume()
+            model.refreshBattery()
+        }
     }
 
     private func open(_ item: SidebarItem?) {

@@ -15,6 +15,7 @@ final class AppModel {
         guard !hasStarted else { return }
         hasStarted = true
         refreshVolume()
+        refreshBattery()
         watchApplicationFolders()
         watchTrash()
         Timer.scheduledTimer(withTimeInterval: 30 * 60, repeats: true) { [weak self] _ in
@@ -224,6 +225,31 @@ final class AppModel {
         }
     }
 
+    // MARK: Battery
+
+    /// nil on Macs without a battery, or until first read.
+    private(set) var battery: BatteryHealth?
+    private(set) var energyUsers: [EnergyUse] = []
+    /// One sample a day, oldest first, to show how the battery ages.
+    private(set) var batteryHistory: [BatterySample] = BatterySample.load()
+
+    func refreshBattery(includingEnergy: Bool = false) {
+        Task {
+            battery = await Task.detached { await BatteryReader.read() }.value
+            if let battery { recordBatterySample(battery) }
+            if includingEnergy {
+                energyUsers = await Task.detached { await BatteryReader.topEnergyUsers(limit: 20) }.value
+            }
+        }
+    }
+
+    private func recordBatterySample(_ battery: BatteryHealth) {
+        guard let capacity = battery.maximumCapacityPercent else { return }
+        if let last = batteryHistory.last, Calendar.current.isDateInToday(last.date) { return }
+        batteryHistory.append(BatterySample(date: .now, capacity: capacity, cycles: battery.cycleCount))
+        BatterySample.save(batteryHistory)
+    }
+
     // MARK: Homebrew
 
     /// nil when Homebrew isn't installed.
@@ -418,5 +444,25 @@ final class AppModel {
             storageMap = map
         }
         refreshVolume()
+    }
+}
+
+/// A daily reading of battery health, kept in the app's preferences.
+struct BatterySample: Codable, Equatable {
+    let date: Date
+    let capacity: Int
+    let cycles: Int
+
+    private static let key = "batteryHistory"
+
+    static func load() -> [BatterySample] {
+        guard let data = UserDefaults.standard.data(forKey: key) else { return [] }
+        return (try? JSONDecoder().decode([BatterySample].self, from: data)) ?? []
+    }
+
+    static func save(_ samples: [BatterySample]) {
+        // A few years of daily readings is plenty.
+        let kept = samples.suffix(1500)
+        if let data = try? JSONEncoder().encode(Array(kept)) { UserDefaults.standard.set(data, forKey: key) }
     }
 }

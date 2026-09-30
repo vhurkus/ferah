@@ -55,3 +55,51 @@ import Testing
         #expect((backups.first?.bytes ?? 0) > 50_000)
     }
 }
+
+@Suite struct BatteryTests {
+    @Test func prefersSettingsFiguresAndReadsLiveState() {
+        let registry: [String: Any] = [
+            "CycleCount": 170, "DesignCycleCount9C": 1000, "CurrentCapacity": 88, "IsCharging": false,
+            "ExternalConnected": false, "AvgTimeToEmpty": 795, "Voltage": 12602,
+            "Amperage": NSNumber(value: UInt64(bitPattern: -512)),
+            "BatteryData": ["DesignCapacity": 6249, "NominalChargeCapacity": 5679],
+        ]
+        let profiler = """
+        {"SPPowerDataType": [{"sppower_battery_health_info": {"sppower_battery_cycle_count": 174,
+          "sppower_battery_health": "Good", "sppower_battery_health_maximum_capacity": "%94"}}]}
+        """
+        let battery = BatteryReader.parse(registry: registry, profiler: profiler)
+
+        #expect(battery.maximumCapacityPercent == 94)
+        #expect(battery.cycleCount == 174)
+        #expect(battery.condition == "Good")
+        #expect(battery.minutesRemaining == 795)
+        #expect(abs((battery.watts ?? 0) + 6.45) < 0.01)
+        #expect(!battery.needsService)
+    }
+
+    @Test func fallsBackToRawCapacityAndIgnoresEstimating() {
+        let registry: [String: Any] = [
+            "CycleCount": 10, "CurrentCapacity": 50, "AvgTimeToEmpty": 65535,
+            "BatteryData": ["DesignCapacity": 1000, "NominalChargeCapacity": 910],
+        ]
+        let battery = BatteryReader.parse(registry: registry, profiler: "")
+        #expect(battery.maximumCapacityPercent == 91)
+        #expect(battery.minutesRemaining == nil)
+    }
+
+    @Test func readsTheLastTopSample() {
+        let output = """
+        PID    POWER COMMAND
+        413    0.0   WindowServer
+        PID    POWER COMMAND
+        413    24.2  WindowServer
+        15550  7.1   top
+        15433  2.5   Preview
+        6169   0.0   Safari
+        7263   1.1   Claude Helper (Renderer)
+        """
+        let users = BatteryReader.parseTop(output)
+        #expect(users.map(\.command) == ["WindowServer", "Preview", "Claude Helper (Renderer)"])
+    }
+}
