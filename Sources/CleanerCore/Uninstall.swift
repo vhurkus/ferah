@@ -13,6 +13,8 @@ public struct InstalledApp: Identifiable, Hashable, Sendable {
     public let sparkleFeed: URL?
     /// Installed from the Mac App Store (it carries a store receipt).
     public let isFromAppStore: Bool
+    /// Sparkle's EdDSA public key (base64), which signs the app's updates.
+    public let sparklePublicKey: String?
 
     public var id: URL { url }
 
@@ -20,18 +22,24 @@ public struct InstalledApp: Identifiable, Hashable, Sendable {
     public var isAppleApp: Bool { bundleIdentifier.map(TrashPolicy.isAppleName) ?? false }
 
     public init(url: URL) {
-        let bundle = Bundle(url: url)
-        let info = bundle?.infoDictionary ?? [:]
+        // Read Info.plist itself: Bundle caches it per path, so after an update it would describe the old copy.
+        let info = Self.info(of: url)
         self.url = url
         self.name = (info["CFBundleDisplayName"] as? String)
             ?? (info["CFBundleName"] as? String)
             ?? url.deletingPathExtension().lastPathComponent
-        self.bundleIdentifier = bundle?.bundleIdentifier
+        self.bundleIdentifier = info["CFBundleIdentifier"] as? String
         self.version = info["CFBundleShortVersionString"] as? String
         self.executableName = info["CFBundleExecutable"] as? String
         self.build = info["CFBundleVersion"] as? String
         self.sparkleFeed = (info["SUFeedURL"] as? String).flatMap(URL.init(string:)).flatMap { $0.scheme == "https" ? $0 : nil }
         self.isFromAppStore = FileManager.default.fileExists(atPath: url.appending(path: "Contents/_MASReceipt/receipt").path)
+        self.sparklePublicKey = info["SUPublicEDKey"] as? String
+    }
+
+    /// The app's Info.plist, read fresh from disk.
+    public static func info(of url: URL) -> [String: Any] {
+        (NSDictionary(contentsOf: url.appending(path: "Contents/Info.plist")) as? [String: Any]) ?? [:]
     }
 }
 

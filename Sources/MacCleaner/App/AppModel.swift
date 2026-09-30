@@ -258,6 +258,16 @@ final class AppModel {
         }
     }
 
+    /// Apps Ferah updated this session, with the version it installed.
+    private(set) var installedUpdates: [URL: String] = [:]
+
+    /// After Ferah installed an update: drop it from the list and measure the new copy.
+    func updateInstalled(at url: URL, version: String) {
+        installedUpdates[url] = version
+        appUpdates?[url] = nil
+        scan([.apps])
+    }
+
     // MARK: Battery
 
     /// nil on Macs without a battery, or until first read.

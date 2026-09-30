@@ -15,12 +15,33 @@ public struct AppUpdate: Hashable, Sendable {
     public let installedVersion: String
     public let latestVersion: String
     public let source: Source
+    /// What Ferah can download and install itself; nil when only the developer's page can help.
+    public let package: UpdatePackage?
 
-    public init(appURL: URL, installedVersion: String, latestVersion: String, source: Source) {
+    public init(appURL: URL, installedVersion: String, latestVersion: String, source: Source, package: UpdatePackage? = nil) {
         self.appURL = appURL
         self.installedVersion = installedVersion
         self.latestVersion = latestVersion
         self.source = source
+        self.package = package
+    }
+}
+
+/// A downloadable app archive (zip or disk image) and what proves it's the real thing.
+public struct UpdatePackage: Hashable, Sendable {
+    public let url: URL
+    /// From Homebrew's catalog; the download must match it exactly.
+    public let sha256: String?
+    /// Sparkle's EdDSA signature of the archive, checked against the key in the installed app.
+    public let edSignature: String?
+    /// The app's file name inside the archive, when known ("Visual Studio Code.app").
+    public let appFileName: String?
+
+    public init(url: URL, sha256: String?, edSignature: String?, appFileName: String?) {
+        self.url = url
+        self.sha256 = sha256
+        self.edSignature = edSignature
+        self.appFileName = appFileName
     }
 }
 
@@ -112,15 +133,20 @@ public struct UpdateChecker: Sendable {
            let newest = Appcast.newest(in: data) {
             let comparable = newest.shortVersion ?? newest.version
             let installedComparable = newest.shortVersion != nil ? installed : (app.build ?? installed)
+            let package = newest.url.map {
+                UpdatePackage(url: $0, sha256: nil, edSignature: newest.edSignature, appFileName: app.url.lastPathComponent)
+            }
             return VersionNumber.isNewer(comparable, than: installedComparable)
-                ? AppUpdate(appURL: app.url, installedVersion: installed, latestVersion: comparable, source: .sparkle)
+                ? AppUpdate(appURL: app.url, installedVersion: installed, latestVersion: comparable, source: .sparkle, package: package)
                 : nil
         }
         if let cask = await catalog()[app.url.lastPathComponent.lowercased()],
            VersionNumber.isNewer(cask.version, than: installed) {
             let shown = cask.version.split(separator: ",").first.map(String.init) ?? cask.version
+            let managed = brewManagedTokens.contains(cask.token)
             return AppUpdate(appURL: app.url, installedVersion: installed, latestVersion: shown,
-                             source: .homebrew(token: cask.token, homepage: cask.homepage, managed: brewManagedTokens.contains(cask.token)))
+                             source: .homebrew(token: cask.token, homepage: cask.homepage, managed: managed),
+                             package: managed ? nil : cask.package)
         }
         return nil
     }
@@ -145,6 +171,8 @@ public struct UpdateChecker: Sendable {
         let token: String
         let version: String
         let homepage: URL?
+        /// Set when the cask is a plain app in a zip or disk image for this Mac's processor.
+        var package: UpdatePackage?
     }
 
     /// Homebrew's public cask catalog, keyed by the app bundle's file name ("google chrome.app").
@@ -165,6 +193,14 @@ public struct UpdateChecker: Sendable {
         return catalog
     }
 
+    static var isAppleSilicon: Bool {
+        #if arch(arm64)
+        true
+        #else
+        false
+        #endif
+    }
+
     static func parseCatalog(_ data: Data) -> [String: CaskInfo] {
         guard let casks = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return [:] }
         var byApp: [String: CaskInfo] = [:]
@@ -173,13 +209,22 @@ public struct UpdateChecker: Sendable {
                   let artifacts = cask["artifacts"] as? [[String: Any]]
             else { continue }
             let homepage = (cask["homepage"] as? String).flatMap(URL.init(string:))
+            // Installers (pkg) run their own steps: those are left to the developer's download page.
+            let isPlainApp = !artifacts.contains { $0["pkg"] != nil || $0["installer"] != nil }
+            let sha = (cask["sha256"] as? String).flatMap { $0 == "no_check" ? nil : $0 }
             for artifact in artifacts {
                 guard let apps = artifact["app"] as? [Any] else { continue }
                 for case let name as String in apps where name.hasSuffix(".app") {
                     let key = (name as NSString).lastPathComponent.lowercased()
+                    var info = CaskInfo(token: token, version: version, homepage: homepage)
+                    // The catalog's main download is for Apple silicon; Intel builds hide in variations.
+                    if isPlainApp, isAppleSilicon, let sha, let url = (cask["url"] as? String).flatMap(URL.init(string:)),
+                       url.scheme == "https" {
+                        info.package = UpdatePackage(url: url, sha256: sha, edSignature: nil, appFileName: (name as NSString).lastPathComponent)
+                    }
                     // Several casks can ship an app of the same name (e.g. beta channels): keep the plain one.
                     if byApp[key] == nil || token.count < byApp[key]!.token.count {
-                        byApp[key] = CaskInfo(token: token, version: version, homepage: homepage)
+                        byApp[key] = info
                     }
                 }
             }
@@ -193,6 +238,8 @@ enum Appcast {
     struct Release {
         let version: String
         let shortVersion: String?
+        var url: URL?
+        var edSignature: String?
     }
 
     static func newest(in data: Data) -> Release? {
@@ -203,7 +250,13 @@ enum Appcast {
         parser.parse()
         return delegate.releases
             .filter { !$0.isPrerelease }
-            .compactMap { item in item.version.map { Release(version: $0, shortVersion: item.shortVersion) } }
+            .compactMap { item in
+                item.version.map {
+                    Release(version: $0, shortVersion: item.shortVersion,
+                            url: item.url.flatMap { URL(string: $0) }.flatMap { $0.scheme == "https" ? $0 : nil },
+                            edSignature: item.edSignature)
+                }
+            }
             .max { a, b in VersionNumber.isNewer(b.shortVersion ?? b.version, than: a.shortVersion ?? a.version) }
     }
 
@@ -211,6 +264,8 @@ enum Appcast {
         struct Item {
             var version: String?
             var shortVersion: String?
+            var url: String?
+            var edSignature: String?
             var isPrerelease = false
         }
 
@@ -225,6 +280,8 @@ enum Appcast {
             if name == "enclosure" {
                 if let version = attributes["sparkle:version"] { current?.version = version }
                 if let short = attributes["sparkle:shortVersionString"] { current?.shortVersion = short }
+                if let url = attributes["url"] { current?.url = url }
+                if let signature = attributes["sparkle:edSignature"] { current?.edSignature = signature }
             }
         }
 

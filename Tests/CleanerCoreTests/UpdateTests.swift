@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Testing
 @testable import CleanerCore
@@ -94,4 +95,68 @@ final class Counter: @unchecked Sendable {
     private let lock = NSLock()
     func increment() { lock.withLock { count += 1 } }
     var value: Int { lock.withLock { count } }
+}
+
+@Suite struct UpdateInstallerTests {
+    @Test func findsTheAppButNeverThroughSymlinks() throws {
+        let home = try FakeHome()
+        defer { home.remove() }
+        try home.file("Image/Stats.app/Contents/Info.plist")
+        try home.file("Elsewhere/Stats.app/Contents/Info.plist")
+        try FileManager.default.createSymbolicLink(at: home.url.appending(path: "Image/Applications"),
+                                                   withDestinationURL: home.url.appending(path: "Elsewhere"))
+        let found = UpdateInstaller.findApp(in: home.url.appending(path: "Image"), preferring: "Stats.app")
+        #expect(found?.path.contains("/Image/Stats.app") == true)
+
+        try FileManager.default.removeItem(at: home.url.appending(path: "Image/Stats.app"))
+        #expect(UpdateInstaller.findApp(in: home.url.appending(path: "Image"), preferring: "Stats.app") == nil)
+    }
+
+    @Test func readsTeamIdentifiers() {
+        #expect(UpdateInstaller.teamIdentifier(inCodesignOutput: "Executable=/x\nTeamIdentifier=MN3X4648SC\n") == "MN3X4648SC")
+        #expect(UpdateInstaller.teamIdentifier(inCodesignOutput: "TeamIdentifier=not set") == nil)
+        #expect(UpdateInstaller.teamIdentifier(inCodesignOutput: "code object is not signed at all") == nil)
+    }
+
+    @Test func verifiesSparkleSignatures() throws {
+        let home = try FakeHome()
+        defer { home.remove() }
+        let archive = try home.file("update.zip", bytes: 5000)
+        let key = Curve25519.Signing.PrivateKey()
+        let signature = try key.signature(for: Data(contentsOf: archive)).base64EncodedString()
+        let publicKey = key.publicKey.rawRepresentation.base64EncodedString()
+
+        #expect(UpdateInstaller.isValidEdSignature(signature, publicKey: publicKey, file: archive))
+        #expect(!UpdateInstaller.isValidEdSignature(signature, publicKey: Curve25519.Signing.PrivateKey().publicKey.rawRepresentation.base64EncodedString(), file: archive))
+    }
+
+    @Test func refusesAChecksumMismatchBeforeUnpacking() async throws {
+        let home = try FakeHome()
+        defer { home.remove() }
+        let plist = try home.file("Apps/Stats.app/Contents/Info.plist")
+        try (["CFBundleIdentifier": "eu.exelban.Stats", "CFBundleShortVersionString": "3.0"] as NSDictionary).write(to: plist)
+        let archive = try home.file("download.zip", bytes: 1000)
+        let installer = UpdateInstaller(runner: FakeRunner(codesign: "TeamIdentifier=ABCDE12345")) { _, _ in
+            let copy = home.url.appending(path: "copy-\(UUID().uuidString).zip")
+            try? FileManager.default.copyItem(at: archive, to: copy)
+            return copy
+        }
+        let update = AppUpdate(appURL: home.url.appending(path: "Apps/Stats.app"), installedVersion: "3.0", latestVersion: "3.1",
+                               source: .homebrew(token: "stats", homepage: nil, managed: false),
+                               package: UpdatePackage(url: URL(string: "https://example.com/Stats.zip")!, sha256: String(repeating: "0", count: 64),
+                                                      edSignature: nil, appFileName: "Stats.app"))
+        await #expect(throws: UpdateInstaller.Failure.checksumMismatch) {
+            _ = try await installer.prepare(update, installed: InstalledApp(url: update.appURL))
+        }
+    }
+}
+
+/// Answers codesign with a canned signature; everything else succeeds.
+struct FakeRunner: CommandRunner {
+    let codesign: String
+    func run(_ executable: String, _ arguments: [String], environment: [String: String]) async -> CommandResult {
+        executable.hasSuffix("codesign") && arguments.first == "-dv"
+            ? CommandResult(status: 0, output: "", error: codesign)
+            : CommandResult(status: 0, output: "", error: "")
+    }
 }

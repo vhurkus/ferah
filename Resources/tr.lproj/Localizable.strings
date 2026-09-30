@@ -442,3 +442,28 @@
 "Ferah wants to run a maintenance task." = "Ferah bir bakım görevi çalıştırmak istiyor.";
 "Thumbnails reset. Finder makes new ones as you browse." = "Küçük resimler sıfırlandı. Finder gezindikçe yenilerini oluşturur.";
 "Asks for your password" = "Parolanı sorar";
+
+/* Direct update install */
+"Ferah wants to install an app update." = "Ferah bir uygulama güncellemesi kurmak istiyor.";
+"The old version couldn't be moved to the Trash." = "Eski sürüm Çöp Kutusu'ne taşınamadı.";
+"The new version is at %@. %@" = "Yeni sürüm şurada: %1$@. %2$@";
+"The download didn't finish. Check your connection and try again." = "İndirme tamamlanmadı. Bağlantını kontrol edip yeniden dene.";
+"The download doesn't match its published checksum, so it wasn't installed." = "İndirilen dosya yayımlanan sağlama toplamıyla eşleşmiyor, bu yüzden kurulmadı.";
+"The download's signature doesn't match the app's, so it wasn't installed." = "İndirilen dosyanın imzası uygulamanınkiyle eşleşmiyor, bu yüzden kurulmadı.";
+"This update comes in a form Ferah can't install. Use the download page." = "Bu güncelleme Ferah'ın kuramayacağı bir biçimde. İndirme sayfasını kullan.";
+"The download doesn't contain the app. Use the download page." = "İndirilen dosyada uygulama yok. İndirme sayfasını kullan.";
+"The installed app has no developer signature to compare with, so Ferah won't replace it." = "Kurulu uygulamanın karşılaştırılacak bir geliştirici imzası yok, bu yüzden Ferah onu değiştirmiyor.";
+"The download is signed by a different developer than the installed app, so it wasn't installed." = "İndirilen dosya kurulu uygulamadan farklı bir geliştirici tarafından imzalanmış, bu yüzden kurulmadı.";
+"macOS doesn't accept the downloaded app (it isn't notarized), so it wasn't installed." = "macOS indirilen uygulamayı kabul etmiyor (onaylı değil), bu yüzden kurulmadı.";
+"The download is version %@, not %@, so it wasn't installed." = "İndirilen sürüm %1$@, beklenen %2$@ değil, bu yüzden kurulmadı.";
+"Updated to %@" = "%@ sürümüne güncellendi";
+"Downloading %lld%%" = "İndiriliyor %%%lld";
+"Checking…" = "Kontrol ediliyor…";
+"Installing…" = "Kuruluyor…";
+"Install Update" = "Güncellemeyi Kur";
+"Quit %@ to install the update?" = "Güncellemeyi kurmak için %@ kapatılsın mı?";
+"Quit and Install" = "Kapat ve Kur";
+"It's open right now. Save your work in it first; the app will ask if something isn't saved." = "Şu an açık. Önce içindeki işini kaydet; kaydedilmemiş bir şey varsa uygulama soracaktır.";
+"The old version is in the Trash, in case you need it back." = "Eski sürüm, geri lazım olursa diye Çöp Kutusu'nde.";
+"You have %@. Ferah checks the download is genuine, from the same developer and notarized, then replaces the app. The old version goes to the Trash." = "Sendeki sürüm %@. Ferah indirilen dosyanın orijinal, aynı geliştiriciden ve Apple onaylı olduğunu kontrol edip uygulamayı değiştirir. Eski sürüm Çöp Kutusu'ne gider.";
+"The app is still open. Quit it, then try again." = "Uygulama hâlâ açık. Kapatıp yeniden dene.";

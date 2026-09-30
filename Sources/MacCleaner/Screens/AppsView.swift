@@ -254,7 +254,8 @@ struct AppsView: View {
                     self.outcome = outcome
                     if outcome.moved.contains(selectedURL) { self.selectedURL = nil }
                 }
-                .id(selectedURL)
+                // Reload once an update replaced the app, so the version and sizes are the new copy's.
+                .id([selectedURL.path, model.installedUpdates[selectedURL] ?? ""])
             } else {
                 ContentUnavailableView {
                     Label("Choose an app", systemImage: ModuleKind.apps.symbol)
@@ -510,6 +511,20 @@ private struct AppUninstallView: View {
             if let update = model.appUpdates?[app.url] {
                 UpdateBanner(update: update, model: model)
                     .padding([.horizontal, .bottom], Metrics.windowPadding)
+            } else if let version = model.installedUpdates[app.url] {
+                Label {
+                    VStack(alignment: .leading, spacing: Space.xxs) {
+                        Text("Updated to \(version)").font(.headline)
+                        Text("The old version is in the Trash, in case you need it back.")
+                            .font(.callout).foregroundStyle(.textSecondary)
+                    }
+                } icon: {
+                    Image(systemName: "checkmark.circle.fill").font(.title2).foregroundStyle(Color.safeIcon)
+                }
+                .padding(Space.m)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .surface()
+                .padding([.horizontal, .bottom], Metrics.windowPadding)
             }
             if let files {
                 ItemTable(items: files.items, checked: $checked, home: model.home)
@@ -606,34 +621,97 @@ private struct AppUninstallView: View {
 }
 
 /// A newer version is available: say which, and offer the way that fits where the app came from.
+/// Where Ferah can verify the download, it installs the update itself.
 private struct UpdateBanner: View {
     let update: AppUpdate
     let model: AppModel
 
+    enum Phase: Equatable {
+        case idle
+        case downloading(Double)
+        case verifying
+        case installing
+        case failed(String)
+    }
+
+    @ViewState private var phase = Phase.idle
+    @ViewState private var confirmingQuit = false
+
+    private var canInstall: Bool {
+        switch update.source {
+        case .appStore, .homebrew(_, _, managed: true): false
+        default: update.package != nil
+        }
+    }
+
+    private var runningCopies: [NSRunningApplication] {
+        guard let id = InstalledApp.info(of: update.appURL)["CFBundleIdentifier"] as? String else { return [] }
+        return NSRunningApplication.runningApplications(withBundleIdentifier: id)
+    }
+
     var body: some View {
-        HStack(spacing: Space.m) {
-            Image(systemName: "arrow.up.circle.fill")
-                .font(.title2)
-                .foregroundStyle(Color.accentColor)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: Space.xxs) {
-                Text("Version \(update.latestVersion) is available").font(.headline)
-                Text(detail).font(.callout).foregroundStyle(.textSecondary)
+        VStack(alignment: .leading, spacing: Space.s) {
+            HStack(spacing: Space.m) {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(Color.accentColor)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: Space.xxs) {
+                    Text("Version \(update.latestVersion) is available")
+                        .font(.headline)
+                    Text(detail).font(.callout).foregroundStyle(.textSecondary)
+                }
+                Spacer()
+                switch phase {
+                case .downloading(let fraction):
+                    ProgressView(value: fraction).frame(width: 90)
+                    Text("Downloading \(Int(fraction * 100))%").font(.callout).monospacedDigit().foregroundStyle(.textSecondary)
+                case .verifying:
+                    ProgressView().controlSize(.small)
+                    Text("Checking…").font(.callout).foregroundStyle(.textSecondary)
+                case .installing:
+                    ProgressView().controlSize(.small)
+                    Text("Installing…").font(.callout).foregroundStyle(.textSecondary)
+                default:
+                    if canInstall {
+                        Button("Install Update") { startInstall() }
+                            .prominentButtonStyle()
+                        if case .homebrew(_, let homepage?, _) = update.source {
+                            Button("Download Page") { NSWorkspace.shared.open(homepage) }
+                                .secondaryButtonStyle()
+                        }
+                    } else {
+                        Button(actionTitle, action: act)
+                            .prominentButtonStyle()
+                    }
+                }
             }
-            Spacer()
-            Button(actionTitle, action: act)
-                .prominentButtonStyle()
+            if case .failed(let message) = phase {
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .foregroundStyle(.reviewIcon)
+            }
         }
         .padding(Space.m)
         .surface()
+        .confirmationDialog(Text("Quit \(update.appURL.deletingPathExtension().lastPathComponent) to install the update?"),
+                            isPresented: $confirmingQuit) {
+            Button("Quit and Install") { Task { await quitThenInstall() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("It's open right now. Save your work in it first; the app will ask if something isn't saved.")
+        }
     }
 
     private var detail: LocalizedStringKey {
+        if canInstall {
+            return "You have \(update.installedVersion). Ferah checks the download is genuine, from the same developer and notarized, then replaces the app. The old version goes to the Trash."
+        }
         switch update.source {
-        case .sparkle: "You have \(update.installedVersion). The app installs updates itself: open it and choose Check for Updates."
-        case .appStore: "You have \(update.installedVersion). It updates through the App Store."
-        case .homebrew(_, _, managed: true): "You have \(update.installedVersion). Homebrew installed it, so Homebrew can update it."
-        case .homebrew: "You have \(update.installedVersion). Download the new version from the developer."
+        case .sparkle: return "You have \(update.installedVersion). The app installs updates itself: open it and choose Check for Updates."
+        case .appStore: return "You have \(update.installedVersion). It updates through the App Store."
+        case .homebrew(_, _, managed: true): return "You have \(update.installedVersion). Homebrew installed it, so Homebrew can update it."
+        case .homebrew: return "You have \(update.installedVersion). Download the new version from the developer."
         }
     }
 
@@ -658,5 +736,54 @@ private struct UpdateBanner: View {
         case .homebrew(_, let homepage, _):
             if let homepage { NSWorkspace.shared.open(homepage) }
         }
+    }
+
+    private func startInstall() {
+        if runningCopies.isEmpty {
+            Task { await install() }
+        } else {
+            confirmingQuit = true
+        }
+    }
+
+    private func quitThenInstall() async {
+        runningCopies.forEach { $0.terminate() }
+        // Give the app a moment to close (and to ask about unsaved work).
+        for _ in 0..<20 where !runningCopies.isEmpty {
+            try? await Task.sleep(for: .milliseconds(500))
+        }
+        guard runningCopies.isEmpty else {
+            phase = .failed(String(localized: "The app is still open. Quit it, then try again."))
+            return
+        }
+        await install()
+    }
+
+    private func install() async {
+        phase = .downloading(0)
+        let app = InstalledApp(url: update.appURL)
+        let staged: URL
+        do {
+            staged = try await UpdateInstaller().prepare(update, installed: app) { stage in
+                Task { @MainActor in
+                    // Progress reports can arrive after the download finished; never step back.
+                    switch (stage, phase) {
+                    case (.downloading, .verifying), (.downloading, .installing): break
+                    case (.downloading(let fraction), _): phase = .downloading(fraction)
+                    case (.verifying, _): phase = .verifying
+                    }
+                }
+            }
+        } catch {
+            phase = .failed(UpdateApplier.message(for: error))
+            return
+        }
+        phase = .installing
+        if let failure = await UpdateApplier.install(staged, replacing: update.appURL, model: model) {
+            phase = .failed(failure)
+            return
+        }
+        let installed = InstalledApp.info(of: update.appURL)["CFBundleShortVersionString"] as? String
+        model.updateInstalled(at: update.appURL, version: installed ?? update.latestVersion)
     }
 }
