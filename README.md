@@ -77,7 +77,7 @@ Your home folder, apps, `/Library`, `/opt` and `/usr/local`, measured in one pas
 | **Background items** | Launch agents and daemons with the app they belong to; broken ones flagged; turn any off |
 | **Homebrew** | Casks and formulae, updates, old versions to clean up, apps Homebrew thinks are installed but aren't |
 | **Battery health** | Capacity compared to new (as Settings shows it), charge cycles, power draw, apps using the most energy, wear over time |
-| **App updates** | Every app, not just App Store ones: Sparkle feeds, the App Store and Homebrew's catalog; only when you ask |
+| **App updates** | Every app, not just App Store ones: Sparkle feeds, the App Store and Homebrew's catalog; only when you ask. One-click install, after checking the download's checksum, developer and notarization |
 | **Maintenance** | Clean up duplicate "Open With" entries, flush DNS, rebuild Spotlight, reset Quick Look thumbnails |
 | **Menu bar** | Free space and battery health at a glance, the Trash, and a warning when the disk is almost full |
 
