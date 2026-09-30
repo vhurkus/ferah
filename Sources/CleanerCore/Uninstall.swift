@@ -7,6 +7,12 @@ public struct InstalledApp: Identifiable, Hashable, Sendable {
     public let version: String?
     /// The binary's name; crash reports are named after it.
     public let executableName: String?
+    /// CFBundleVersion, which Sparkle feeds sometimes compare against.
+    public let build: String?
+    /// The app's Sparkle update feed, when it has one.
+    public let sparkleFeed: URL?
+    /// Installed from the Mac App Store (it carries a store receipt).
+    public let isFromAppStore: Bool
 
     public var id: URL { url }
 
@@ -23,6 +29,9 @@ public struct InstalledApp: Identifiable, Hashable, Sendable {
         self.bundleIdentifier = bundle?.bundleIdentifier
         self.version = info["CFBundleShortVersionString"] as? String
         self.executableName = info["CFBundleExecutable"] as? String
+        self.build = info["CFBundleVersion"] as? String
+        self.sparkleFeed = (info["SUFeedURL"] as? String).flatMap(URL.init(string:)).flatMap { $0.scheme == "https" ? $0 : nil }
+        self.isFromAppStore = FileManager.default.fileExists(atPath: url.appending(path: "Contents/_MASReceipt/receipt").path)
     }
 }
 

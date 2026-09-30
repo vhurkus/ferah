@@ -377,3 +377,22 @@
 "%lld%%" = "%%%lld";
 "Battery %lld%%" = "Pil %%%lld";
 "Health %lld%% · %lld cycles" = "Sağlık %%%1$lld · %2$lld döngü";
+
+/* App updates */
+"Checking for updates…" = "Güncellemeler denetleniyor…";
+"All apps are up to date" = "Tüm uygulamalar güncel";
+"Updates only (%lld)" = "Yalnızca güncellemeler (%lld)";
+"Check Again" = "Yeniden Denetle";
+"Check your apps for updates?" = "Uygulamaların güncellemeleri denetlensin mi?";
+"Ferah asks the App Store, Homebrew's public catalog and each app's own update server for the newest version. That tells them which apps you have. Nothing is installed without you." = "Ferah en yeni sürümü App Store'a, Homebrew'un açık kataloğuna ve her uygulamanın kendi güncelleme sunucusuna sorar. Bu, onlara hangi uygulamaları kullandığını gösterir. Sen istemeden hiçbir şey kurulmaz.";
+"Update available: %@" = "Güncelleme var: %@";
+"Version %@ is available" = "%@ sürümü çıktı";
+"You have %@. The app installs updates itself: open it and choose Check for Updates." = "Sende %@ var. Uygulama güncellemeleri kendisi kurar: aç ve Güncellemeleri Denetle'yi seç.";
+"You have %@. It updates through the App Store." = "Sende %@ var. App Store üzerinden güncellenir.";
+"You have %@. Homebrew installed it, so Homebrew can update it." = "Sende %@ var. Homebrew ile kurulduğu için Homebrew güncelleyebilir.";
+"You have %@. Download the new version from the developer." = "Sende %@ var. Yeni sürümü geliştiricinin sitesinden indir.";
+"Open App" = "Uygulamayı Aç";
+"Open App Store" = "App Store'u Aç";
+"Update with Homebrew" = "Homebrew ile Güncelle";
+"Download Page" = "İndirme Sayfası";
+"Checked %lld of %lld apps" = "%2$lld uygulamadan %1$lld tanesi denetlendi";

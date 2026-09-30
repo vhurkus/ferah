@@ -225,6 +225,39 @@ final class AppModel {
         }
     }
 
+    // MARK: App updates
+
+    /// Newer versions found by the last check, keyed by app; nil until the user checks.
+    private(set) var appUpdates: [URL: AppUpdate]?
+    private(set) var isCheckingUpdates = false
+    /// Apps checked so far and how many there are, while checking.
+    private(set) var updateProgress: (done: Int, total: Int)?
+
+    /// Contacts the App Store, Homebrew's catalog and apps' update servers, so it only runs on request.
+    func checkForAppUpdates() {
+        guard !isCheckingUpdates, let apps = results[.apps] else { return }
+        isCheckingUpdates = true
+        let installed = apps.items.map { InstalledApp(url: $0.url) }
+        let homebrew = homebrew, known = brewPackages
+        Task {
+            let managed: Set<String>
+            if let known {
+                managed = Set(known.filter { $0.kind == .cask }.map(\.token))
+            } else if let homebrew {
+                managed = Set(await homebrew.installed().filter { $0.kind == .cask }.map(\.token))
+            } else {
+                managed = []
+            }
+            let cache = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?
+                .appending(path: "dev.huseyinyucel.ferah/homebrew-casks.json")
+            appUpdates = await UpdateChecker(brewManagedTokens: managed, catalogCache: cache).check(installed) { done, total in
+                Task { @MainActor in self.updateProgress = (done, total) }
+            }
+            updateProgress = nil
+            isCheckingUpdates = false
+        }
+    }
+
     // MARK: Battery
 
     /// nil on Macs without a battery, or until first read.

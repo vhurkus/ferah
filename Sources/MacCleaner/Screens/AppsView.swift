@@ -15,6 +15,9 @@ struct AppsView: View {
     @ViewState private var sort = AppSort.size
     @ViewState private var showsOrphans = false
     @ViewState private var selectedTrashed: URL?
+    @ViewState private var showsUpdatesOnly = false
+    @ViewState private var isConfirmingUpdateCheck = false
+    @AppStorage("hasExplainedUpdateCheck") private var hasExplainedUpdateCheck = false
 
     enum AppSort: String, CaseIterable, Identifiable {
         case name, size, lastUsed
@@ -33,13 +36,15 @@ struct AppsView: View {
         let app: InstalledApp
         let bytes: Int64
         let lastUsed: Date?
+        var update: AppUpdate?
         var id: URL { app.url }
     }
 
     private var apps: [AppEntry] {
         let entries = (model.results[.apps]?.items ?? [])
-            .map { AppEntry(app: InstalledApp(url: $0.url), bytes: $0.bytes, lastUsed: $0.lastUsed) }
+            .map { AppEntry(app: InstalledApp(url: $0.url), bytes: $0.bytes, lastUsed: $0.lastUsed, update: model.appUpdates?[$0.url]) }
             .filter { filter.isEmpty || $0.app.name.localizedCaseInsensitiveContains(filter) }
+            .filter { !showsUpdatesOnly || model.appUpdates?[$0.app.url] != nil }
         return entries.sorted { a, b in
             switch sort {
             case .name: a.app.name.localizedStandardCompare(b.app.name) == .orderedAscending
@@ -99,6 +104,56 @@ struct AppsView: View {
         }
     }
 
+    @ViewBuilder private var updatesControl: some View {
+        HStack(spacing: Space.s) {
+            if model.isCheckingUpdates {
+                ProgressView().controlSize(.small)
+                if let progress = model.updateProgress, progress.total > 0 {
+                    Text("Checked \(progress.done) of \(progress.total) apps")
+                        .font(.caption)
+                        .monospacedDigit()
+                        .foregroundStyle(.textSecondary)
+                } else {
+                    Text("Checking for updates…").font(.caption).foregroundStyle(.textSecondary)
+                }
+            } else if let updates = model.appUpdates {
+                Toggle(isOn: $showsUpdatesOnly) {
+                    Text(updates.isEmpty ? "All apps are up to date" : "Updates only (\(updates.count))")
+                }
+                .toggleStyle(.checkbox)
+                .disabled(updates.isEmpty)
+                .font(.caption)
+                Spacer()
+                Button {
+                    model.checkForAppUpdates()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .buttonStyle(.borderless)
+                .help(Text("Check Again"))
+                .accessibilityLabel(Text("Check Again"))
+            } else {
+                Button {
+                    if hasExplainedUpdateCheck { model.checkForAppUpdates() } else { isConfirmingUpdateCheck = true }
+                } label: {
+                    Label("Check for Updates", systemImage: "arrow.down.circle")
+                        .frame(maxWidth: .infinity)
+                }
+                .secondaryButtonStyle()
+                .controlSize(.small)
+            }
+        }
+        .confirmationDialog(Text("Check your apps for updates?"), isPresented: $isConfirmingUpdateCheck) {
+            Button("Check for Updates") {
+                hasExplainedUpdateCheck = true
+                model.checkForAppUpdates()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Ferah asks the App Store, Homebrew's public catalog and each app's own update server for the newest version. That tells them which apps you have. Nothing is installed without you.")
+        }
+    }
+
     private var startHero: some View {
         EmptyStateHero(
             symbol: ModuleKind.apps.symbol, tint: ModuleKind.apps.tint, title: Text(ModuleKind.apps.title),
@@ -123,11 +178,12 @@ struct AppsView: View {
                 .pickerStyle(.segmented)
                 .labelsHidden()
                 .controlSize(.small)
+                updatesControl
             }
             .padding(Space.m)
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    if filter.isEmpty, !model.trashedApps.isEmpty {
+                    if filter.isEmpty, !showsUpdatesOnly, !model.trashedApps.isEmpty {
                         ForEach(model.trashedApps) { trashed in
                             TrashedAppRow(trashed: trashed, isSelected: selectedTrashed == trashed.app.url) {
                                 selectedTrashed = trashed.app.url
@@ -138,7 +194,7 @@ struct AppsView: View {
                         }
                         if model.orphans?.items.isEmpty ?? true { Divider().padding(.vertical, Space.xs) }
                     }
-                    if let orphans = model.orphans, !orphans.items.isEmpty, filter.isEmpty {
+                    if let orphans = model.orphans, !orphans.items.isEmpty, filter.isEmpty, !showsUpdatesOnly {
                         OrphansRow(result: orphans, isSelected: showsOrphans) {
                             showsOrphans = true
                             selectedURL = nil
@@ -400,6 +456,13 @@ private struct AppRow: View {
                             .monospacedDigit()
                             .foregroundStyle(.textSecondary)
                     }
+                    if let update = entry.update {
+                        Label(update.latestVersion, systemImage: "arrow.up.circle.fill")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Color.accentColor)
+                            .lineLimit(1)
+                            .accessibilityLabel(Text("Update available: \(update.latestVersion)"))
+                    }
                     Group {
                         if showsLocation {
                             Text(verbatim: app.url.path)
@@ -444,6 +507,10 @@ private struct AppUninstallView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header.padding(Metrics.windowPadding)
+            if let update = model.appUpdates?[app.url] {
+                UpdateBanner(update: update, model: model)
+                    .padding([.horizontal, .bottom], Metrics.windowPadding)
+            }
             if let files {
                 ItemTable(items: files.items, checked: $checked, home: model.home)
                     .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -535,5 +602,61 @@ private struct AppUninstallView: View {
         checked.subtract(outcome.moved)
         isMoving = false
         finished(outcome)
+    }
+}
+
+/// A newer version is available: say which, and offer the way that fits where the app came from.
+private struct UpdateBanner: View {
+    let update: AppUpdate
+    let model: AppModel
+
+    var body: some View {
+        HStack(spacing: Space.m) {
+            Image(systemName: "arrow.up.circle.fill")
+                .font(.title2)
+                .foregroundStyle(Color.accentColor)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: Space.xxs) {
+                Text("Version \(update.latestVersion) is available").font(.headline)
+                Text(detail).font(.callout).foregroundStyle(.textSecondary)
+            }
+            Spacer()
+            Button(actionTitle, action: act)
+                .prominentButtonStyle()
+        }
+        .padding(Space.m)
+        .surface()
+    }
+
+    private var detail: LocalizedStringKey {
+        switch update.source {
+        case .sparkle: "You have \(update.installedVersion). The app installs updates itself: open it and choose Check for Updates."
+        case .appStore: "You have \(update.installedVersion). It updates through the App Store."
+        case .homebrew(_, _, managed: true): "You have \(update.installedVersion). Homebrew installed it, so Homebrew can update it."
+        case .homebrew: "You have \(update.installedVersion). Download the new version from the developer."
+        }
+    }
+
+    private var actionTitle: LocalizedStringKey {
+        switch update.source {
+        case .sparkle: "Open App"
+        case .appStore: "Open App Store"
+        case .homebrew(_, _, managed: true): "Update with Homebrew"
+        case .homebrew: "Download Page"
+        }
+    }
+
+    private func act() {
+        switch update.source {
+        case .sparkle:
+            NSWorkspace.shared.openApplication(at: update.appURL, configuration: .init())
+        case .appStore(let url):
+            NSWorkspace.shared.open(url)
+        case .homebrew(let token, _, managed: true):
+            model.runBrew(["upgrade", "--cask", token], title: String(localized: "Updating \(token)"))
+            NotificationCenter.default.post(name: .selectSidebarItem, object: SidebarItem.homebrew)
+        case .homebrew(_, let homepage, _):
+            if let homepage { NSWorkspace.shared.open(homepage) }
+        }
     }
 }
