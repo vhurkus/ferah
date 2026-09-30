@@ -48,4 +48,21 @@ import Testing
         #expect(Homebrew.upgradeArguments(nil) == ["upgrade"])
         #expect(Homebrew.reinstallArguments(cask) == ["reinstall", "--cask", "iina"])
     }
+
+    @Test func findsOnlyPlainCaskRecords() throws {
+        let home = try FakeHome()
+        defer { home.remove() }
+        let brew = try home.file("brew/bin/brew")
+        try home.file("brew/Caskroom/parallels/.metadata/x")
+        let homebrew = try #require(Homebrew(executable: brew.path))
+        func cask(_ token: String) -> BrewPackage {
+            BrewPackage(kind: .cask, token: token, displayName: token, summary: nil, installedVersion: "1",
+                        latestVersion: nil, isRequested: true, autoUpdates: false, appPath: nil, isAppMissing: true)
+        }
+
+        #expect(homebrew.caskroomRecord(for: cask("parallels"))?.lastPathComponent == "parallels")
+        #expect(homebrew.caskroomRecord(for: cask("../bin")) == nil)
+        #expect(homebrew.caskroomRecord(for: cask("")) == nil)
+        #expect(homebrew.caskroomRecord(for: cask("missing")) == nil)
+    }
 }

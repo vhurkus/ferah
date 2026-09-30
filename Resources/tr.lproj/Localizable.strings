@@ -334,3 +334,10 @@
 "Copy Command" = "Komutu Kopyala";
 "Open Terminal" = "Terminal'i Aç";
 "Homebrew removes the app. Its files in your Library stay; review them afterwards under Applications › Removed apps." = "Homebrew uygulamayı kaldırır. Library'deki dosyaları kalır; sonra Uygulamalar › Kaldırılmış uygulamalar altında gözden geçir.";
+
+"Homebrew couldn't uninstall %@" = "Homebrew %@ uygulamasını kaldıramadı";
+"Its app is already gone, and one of the cask's uninstall steps fails without it. Ferah can drop Homebrew's record of it instead; the record goes to the Trash." = "Uygulaması zaten silinmiş ve cask'ın kaldırma adımlarından biri onsuz başarısız oluyor. Bunun yerine Ferah, Homebrew'daki kaydını kaldırabilir; kayıt Çöp Kutusu'na gider.";
+"Forget in Homebrew" = "Homebrew'da Unut";
+"Homebrew has no record of %@ anymore." = "Homebrew'da artık %@ kaydı yok.";
+"Homebrew no longer lists %@." = "Homebrew artık %@ listelemiyor.";
+"Couldn't remove Homebrew's record of %@: %@" = "Homebrew'daki %1$@ kaydı kaldırılamadı: %2$@";

@@ -10,6 +10,9 @@ struct HomebrewView: View {
     static let tint = Color.orange
 
     @ViewState private var pendingUninstall: BrewPackage?
+    /// A cask whose app is gone that Homebrew couldn't uninstall: its record can be dropped instead.
+    @ViewState private var forgettable: BrewPackage?
+    @ViewState private var forgetMessage: String?
     @ViewState private var showsDependencies = false
 
     var body: some View {
@@ -40,6 +43,8 @@ struct HomebrewView: View {
             presenting: pendingUninstall
         ) { package in
             Button("Uninstall", role: .destructive) {
+                forgettable = package.isAppMissing ? package : nil
+                forgetMessage = nil
                 model.runBrew(Homebrew.uninstallArguments(package), title: String(localized: "Uninstalling \(package.displayName)"))
             }
             Button("Cancel", role: .cancel) {}
@@ -62,6 +67,15 @@ struct HomebrewView: View {
             VStack(alignment: .leading, spacing: Space.xl) {
                 header(casks: casks.count + missing.count, tools: tools.count, outdated: outdated.count, isBusy: isBusy)
                 BrewConsoleView(console: model.brewConsole)
+                if let package = forgettable, model.brewConsole.succeeded == false {
+                    forgetCard(package)
+                }
+                if let forgetMessage {
+                    Label(forgetMessage, systemImage: "info.circle")
+                        .padding(Space.m)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .surface()
+                }
 
                 if !missing.isEmpty {
                     section(Text("App missing"), note: Text("Homebrew still lists these, but their app is gone. Reinstall it, or remove it from Homebrew.")) {
@@ -142,6 +156,44 @@ struct HomebrewView: View {
             .frame(maxWidth: Metrics.contentMaxWidth)
             .frame(maxWidth: .infinity)
         }
+    }
+
+    /// Homebrew runs a cask's uninstall steps even when its app is gone, and some of them fail then
+    /// (quitting an app that isn't there). Dropping Homebrew's record is what's left to do.
+    private func forgetCard(_ package: BrewPackage) -> some View {
+        HStack(spacing: Space.m) {
+            IconTile(symbol: "bandage.fill", tint: .orange, size: 36)
+            VStack(alignment: .leading, spacing: Space.xxs) {
+                Text("Homebrew couldn't uninstall \(package.displayName)").font(.headline)
+                Text("Its app is already gone, and one of the cask's uninstall steps fails without it. Ferah can drop Homebrew's record of it instead; the record goes to the Trash.")
+                    .font(.callout)
+                    .foregroundStyle(.textSecondary)
+                    .lineLimit(3)
+            }
+            Spacer()
+            Button("Forget in Homebrew") { Task { await forget(package) } }
+                .prominentButtonStyle()
+        }
+        .padding(Space.l)
+        .surface()
+    }
+
+    private func forget(_ package: BrewPackage) async {
+        guard let record = model.homebrew?.caskroomRecord(for: package) else {
+            forgetMessage = String(localized: "Homebrew has no record of \(package.displayName) anymore.")
+            forgettable = nil
+            model.loadHomebrew()
+            return
+        }
+        do {
+            _ = try await NSWorkspace.shared.recycle([record])
+            forgetMessage = String(localized: "Homebrew no longer lists \(package.displayName).")
+        } catch {
+            forgetMessage = String(localized: "Couldn't remove Homebrew's record of \(package.displayName): \(error.localizedDescription)")
+        }
+        forgettable = nil
+        model.brewConsole.dismiss()
+        model.loadHomebrew()
     }
 
     private func header(casks: Int, tools: Int, outdated: Int, isBusy: Bool) -> some View {

@@ -157,6 +157,18 @@ public struct Homebrew: Sendable {
         package.kind == .cask ? ["reinstall", "--cask", package.token] : ["reinstall", package.token]
     }
 
+    /// Where Homebrew keeps its record of an installed cask: `<prefix>/Caskroom/<token>`.
+    /// nil unless the token is a plain cask name, so nothing else can ever be addressed.
+    public func caskroomRecord(for package: BrewPackage) -> URL? {
+        guard package.kind == .cask, !package.token.isEmpty,
+              package.token.allSatisfy({ $0.isASCII && ($0.isLowercase || $0.isNumber || "-@._".contains($0)) }),
+              !package.token.hasPrefix(".")
+        else { return nil }
+        let prefix = URL(fileURLWithPath: executable).deletingLastPathComponent().deletingLastPathComponent()
+        let record = prefix.appending(path: "Caskroom").appending(path: package.token)
+        return FileManager.default.fileExists(atPath: record.path) ? record : nil
+    }
+
     public static let updateArguments = ["update"]
     public static let cleanupArguments = ["cleanup", "--prune=all"]
     public static let autoremoveArguments = ["autoremove"]
