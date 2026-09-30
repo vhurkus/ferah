@@ -37,8 +37,10 @@ public enum TrashPolicy {
         let target = url.standardizedFileURL.resolvingSymlinksInPath()
 
         if target.pathExtension == "app" {
-            if isAppleBundle(target) { return .systemApp }
-            if isInApplicationFolder(target, roots: applicationRoots) { return nil }
+            let inApplicationFolder = isInApplicationFolder(target, roots: applicationRoots)
+            // Apple ships two kinds of apps users may remove: macOS installers and Xcode.
+            if isAppleBundle(target) { return inApplicationFolder && isRemovableAppleApp(target) ? nil : .systemApp }
+            if inApplicationFolder { return nil }
         }
         if let rejection = checkSystemLeftover(target.pathComponents, systemRoot: systemRoot) {
             return rejection == .outsideAllowedLocations ? checkHomeItem(target.pathComponents, home: home) : rejection
@@ -94,6 +96,12 @@ public enum TrashPolicy {
     public static func isAppleName(_ name: String) -> Bool {
         let lower = name.lowercased()
         return lower.hasPrefix("com.apple.") || lower.contains(".com.apple.")
+    }
+
+    /// macOS installers ("Install macOS …", downloadable again from Apple) and Xcode copies.
+    static func isRemovableAppleApp(_ url: URL) -> Bool {
+        guard let id = Bundle(url: url)?.bundleIdentifier?.lowercased() else { return false }
+        return id.hasPrefix("com.apple.installassistant.") || id == "com.apple.dt.xcode"
     }
 
     static func isAppleBundle(_ url: URL) -> Bool {

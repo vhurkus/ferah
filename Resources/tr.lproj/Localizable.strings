@@ -396,3 +396,20 @@
 "Update with Homebrew" = "Homebrew ile Güncelle";
 "Download Page" = "İndirme Sayfası";
 "Checked %lld of %lld apps" = "%2$lld uygulamadan %1$lld tanesi denetlendi";
+
+/* System Data: forgotten downloads */
+"Move %@ to the Trash?" = "%@ Çöp Kutusu'na taşınsın mı?";
+"You can download it again from Apple whenever you need it." = "İhtiyaç duyduğunda Apple'dan yeniden indirebilirsin.";
+"Finder downloads it again when it needs to update or restore a device." = "Finder, bir cihazı güncellemesi ya da geri yüklemesi gerektiğinde onu yeniden indirir.";
+"The Xcode your developer tools use stays. Xcode from the App Store asks for your password." = "Geliştirici araçlarının kullandığı Xcode kalır. App Store'dan gelen Xcode parolanı ister.";
+"Device software %@" = "Cihaz yazılımı %@";
+"Another copy of Xcode: %@" = "Fazladan Xcode kopyası: %@";
+"GarageBand and Logic sounds" = "GarageBand ve Logic sesleri";
+"Mail attachments" = "Mail ekleri";
+"A macOS installer left in Applications after an upgrade. It's not needed to run your Mac." = "Bir yükseltmeden sonra Uygulamalar'da kalmış macOS kurulum uygulaması. Mac'inin çalışması için gerekmez.";
+"Downloaded by Finder to update or restore an iPhone or iPad." = "Finder bir iPhone ya da iPad'i güncellemek veya geri yüklemek için indirdi.";
+"Xcode versions take 10 GB or more each. The one your developer tools use isn't listed." = "Her Xcode sürümü 10 GB ya da daha fazla yer kaplar. Geliştirici araçlarının kullandığı listede yok.";
+"Instruments and loops downloaded by GarageBand or Logic. Remove sounds from inside those apps." = "GarageBand ya da Logic'in indirdiği enstrüman ve döngüler. Sesleri bu uygulamaların içinden kaldır.";
+"Copies Mail saved when you opened attachments. Mail keeps the originals in your messages." = "Ekleri açtığında Mail'in kaydettiği kopyalar. Mail asıllarını iletilerinde saklar.";
+"macOS installers" = "macOS kurulum uygulamaları";
+"Device software" = "Cihaz yazılımları";

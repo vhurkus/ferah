@@ -103,3 +103,47 @@ import Testing
         #expect(users.map(\.command) == ["WindowServer", "Preview", "Claude Helper (Renderer)"])
     }
 }
+
+@Suite struct ForgottenDownloadTests {
+    func app(_ home: FakeHome, _ path: String, id: String, version: String = "1") throws -> URL {
+        let plist = try home.file("\(path)/Contents/Info.plist")
+        try (["CFBundleIdentifier": id, "CFBundleShortVersionString": version] as NSDictionary).write(to: plist)
+        return home.url.appending(path: path)
+    }
+
+    @Test func findsInstallersFirmwareAndExtraXcodes() throws {
+        let home = try FakeHome()
+        defer { home.remove() }
+        let apps = home.url.appending(path: "Apps")
+        _ = try app(home, "Apps/Install macOS Sequoia.app", id: "com.apple.InstallAssistant.macOSSequoia", version: "15.6")
+        let active = try app(home, "Apps/Xcode.app", id: "com.apple.dt.Xcode", version: "26.0")
+        _ = try app(home, "Apps/Xcode-15.4.app", id: "com.apple.dt.Xcode", version: "15.4")
+        _ = try app(home, "Apps/Safari.app", id: "com.apple.Safari")
+        try home.file("Library/iTunes/iPhone Software Updates/iPhone17,1_26.0_Restore.ipsw", bytes: 20_000)
+
+        let inspector = SystemDataInspector(runner: ProcessRunner(), home: home.url,
+                                            developerDirectory: active.appending(path: "Contents/Developer").path,
+                                            applicationFolder: apps, systemRoot: home.url.appending(path: "NoSystem"))
+
+        #expect(inspector.macOSInstallers().map(\.title) == ["Install macOS Sequoia"])
+        #expect(inspector.extraXcodes().map(\.title) == ["Xcode-15.4"])
+        #expect(inspector.deviceFirmware().map(\.title) == ["iPhone17,1_26.0_Restore"])
+    }
+
+    @Test func policyAllowsInstallersAndXcodeOnlyInApplicationFolders() throws {
+        let base = try FakeHome()
+        defer { base.remove() }
+        let home = base.url.appending(path: "Home")
+        try base.file("Home/.keep")
+        let apps = base.url.appending(path: "Apps")
+        let installer = try app(base, "Apps/Install macOS Sequoia.app", id: "com.apple.InstallAssistant.macOSSequoia")
+        let xcode = try app(base, "Apps/Xcode-15.4.app", id: "com.apple.dt.Xcode")
+        let safari = try app(base, "Apps/Safari.app", id: "com.apple.Safari")
+        let stray = try app(base, "Home/Downloads/Install macOS Sequoia.app", id: "com.apple.InstallAssistant.macOSSequoia")
+
+        #expect(TrashPolicy.check(installer, home: home, applicationRoots: [apps]) == nil)
+        #expect(TrashPolicy.check(xcode, home: home, applicationRoots: [apps]) == nil)
+        #expect(TrashPolicy.check(safari, home: home, applicationRoots: [apps]) == .systemApp)
+        #expect(TrashPolicy.check(stray, home: home, applicationRoots: [apps]) == .systemApp)
+    }
+}

@@ -13,6 +13,16 @@ public struct SystemDataItem: Identifiable, Hashable, Sendable {
         case deviceBackup
         /// Photos and files received in Messages; managed in Messages itself.
         case messagesAttachments
+        /// An "Install macOS …" app left in Applications; downloadable again from Apple.
+        case macOSInstaller
+        /// iPhone or iPad firmware Finder downloaded for an update or restore.
+        case deviceFirmware
+        /// A second copy of Xcode, besides the one command-line tools use.
+        case extraXcode
+        /// Instruments and loops for GarageBand and Logic; managed in those apps.
+        case soundLibrary
+        /// Attachments Mail saved when you opened them; Mail recreates them as needed.
+        case mailDownloads
     }
 
     public let id: String
@@ -43,10 +53,17 @@ public struct SystemDataInspector: Sendable {
     /// Xcode's developer folder, for simctl; nil when Xcode isn't installed.
     public let developerDirectory: String?
 
-    public init(runner: CommandRunner = ProcessRunner(), home: URL, developerDirectory: String? = Self.findXcode()) {
+    /// Where installers and Xcode copies are looked for.
+    public let applicationFolder: URL
+    public let systemRoot: URL
+
+    public init(runner: CommandRunner = ProcessRunner(), home: URL, developerDirectory: String? = Self.findXcode(),
+                applicationFolder: URL = URL(fileURLWithPath: "/Applications"), systemRoot: URL = URL(fileURLWithPath: "/")) {
         self.runner = runner
         self.home = home
         self.developerDirectory = developerDirectory
+        self.applicationFolder = applicationFolder
+        self.systemRoot = systemRoot
     }
 
     /// The full Xcode, not the Command Line Tools: only Xcode has simctl.
@@ -63,7 +80,9 @@ public struct SystemDataInspector: Sendable {
         async let unavailable = unavailableSimulators()
         let backups = deviceBackups()
         let messages = messagesAttachments()
-        return await [snapshots].compactMap { $0 } + runtimes + [unavailable].compactMap { $0 } + backups + [messages].compactMap { $0 }
+        let found = macOSInstallers() + deviceFirmware() + extraXcodes() + soundLibraries() + [mailDownloads()].compactMap { $0 }
+        return await [snapshots].compactMap { $0 } + runtimes + [unavailable].compactMap { $0 } + backups
+            + found + [messages].compactMap { $0 }
     }
 
     // MARK: Time Machine
@@ -161,6 +180,66 @@ public struct SystemDataInspector: Sendable {
         // A few photos aren't worth a row.
         guard bytes >= 10_000_000 else { return nil }
         return SystemDataItem(id: "messages", kind: .messagesAttachments, title: "Messages attachments", bytes: bytes, url: folder)
+    }
+
+    // MARK: Forgotten downloads
+
+    func macOSInstallers() -> [SystemDataItem] {
+        FileWalker.children(of: applicationFolder, log: UnreadableLog())
+            .filter { $0.pathExtension == "app" && Bundle(url: $0)?.bundleIdentifier?.hasPrefix("com.apple.InstallAssistant.") == true }
+            .map { app in
+                let version = Bundle(url: app)?.infoDictionary?["CFBundleShortVersionString"] as? String
+                return SystemDataItem(id: "installer-" + app.path, kind: .macOSInstaller,
+                                      title: app.deletingPathExtension().lastPathComponent, detail: version,
+                                      bytes: FileWalker.allocatedSize(of: app, log: UnreadableLog()), url: app)
+            }
+    }
+
+    /// `.ipsw` files in Finder's "iPhone Software Updates" and "iPad Software Updates" folders.
+    func deviceFirmware() -> [SystemDataItem] {
+        ["iPhone Software Updates", "iPad Software Updates", "iPod Software Updates"].flatMap { folder in
+            FileWalker.children(of: home.appending(path: "Library/iTunes").appending(path: folder), log: UnreadableLog())
+                .filter { $0.pathExtension.lowercased() == "ipsw" }
+                .map { file in
+                    SystemDataItem(id: "ipsw-" + file.path, kind: .deviceFirmware, title: file.deletingPathExtension().lastPathComponent,
+                                   bytes: FileWalker.allocatedSize(of: file, log: UnreadableLog()), url: file,
+                                   lastUsed: (try? file.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate)
+                }
+        }
+    }
+
+    /// Every Xcode except the one the developer tools point at.
+    func extraXcodes() -> [SystemDataItem] {
+        // Compare real paths: symlinks and /var → /private/var would otherwise hide the active copy.
+        let active = developerDirectory.map {
+            StorageAnalyzer.realURL(URL(fileURLWithPath: $0).deletingLastPathComponent().deletingLastPathComponent()).path
+        }
+        let copies = FileWalker.children(of: applicationFolder, log: UnreadableLog())
+            .filter { $0.pathExtension == "app" && Bundle(url: $0)?.bundleIdentifier == "com.apple.dt.Xcode" }
+        guard copies.count > 1 else { return [] }
+        return copies.filter { StorageAnalyzer.realURL($0).path != active }.map { app in
+            let version = Bundle(url: app)?.infoDictionary?["CFBundleShortVersionString"] as? String
+            return SystemDataItem(id: "xcode-" + app.path, kind: .extraXcode, title: app.deletingPathExtension().lastPathComponent,
+                                  detail: version, bytes: FileWalker.allocatedSize(of: app, log: UnreadableLog()), url: app)
+        }
+    }
+
+    func soundLibraries() -> [SystemDataItem] {
+        let folders = ["Library/Application Support/GarageBand", "Library/Application Support/Logic", "Library/Audio/Apple Loops"]
+        let bytes = folders.map { systemRoot.appending(path: $0) }.filter(FileWalker.exists)
+            .reduce(Int64(0)) { $0 + FileWalker.allocatedSize(of: $1, log: UnreadableLog()) }
+        // Small installs come with every Mac; only a downloaded library is worth a row.
+        guard bytes >= 500_000_000 else { return [] }
+        return [SystemDataItem(id: "sound-library", kind: .soundLibrary, title: "GarageBand and Logic sounds", bytes: bytes,
+                               url: systemRoot.appending(path: "Library/Application Support/GarageBand"))]
+    }
+
+    func mailDownloads() -> SystemDataItem? {
+        let folder = home.appending(path: "Library/Containers/com.apple.mail/Data/Library/Mail Downloads")
+        guard FileWalker.exists(folder) else { return nil }
+        let bytes = FileWalker.allocatedSize(of: folder, log: UnreadableLog())
+        guard bytes >= 50_000_000 else { return nil }
+        return SystemDataItem(id: "mail-downloads", kind: .mailDownloads, title: "Mail attachments", bytes: bytes, url: folder)
     }
 
     // MARK: Removal

@@ -19,7 +19,7 @@ struct SystemDataView: View {
                 EmptyStateHero(
                     symbol: SystemDataView.symbol, tint: SystemDataView.tint, title: Text("System Data"),
                     message: Text("macOS counts these under System Data. Find out what they are and remove the ones you don't need."),
-                    places: ["Time Machine snapshots", "Xcode simulators", "iPhone and iPad backups", "Messages attachments"],
+                    places: ["Time Machine snapshots", "Xcode simulators", "iPhone and iPad backups", "macOS installers", "Device software", "Messages attachments"],
                     actionTitle: model.isInspectingSystemData ? "Looking…" : "Look Inside",
                     isWorking: model.isInspectingSystemData, action: model.inspectSystemData
                 )
@@ -67,10 +67,12 @@ struct SystemDataView: View {
                 }
                 ForEach(items) { item in
                     SystemDataCard(item: item, isWorking: working == item.id) {
-                        if case .messagesAttachments = item.kind {
-                            openMessages()
-                        } else {
-                            pending = item
+                        switch item.kind {
+                        case .messagesAttachments: openMessages()
+                        // Managed by their apps: show where they are instead of removing them.
+                        case .soundLibrary, .mailDownloads:
+                            if let url = item.url { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+                        default: pending = item
                         }
                     }
                 }
@@ -87,7 +89,8 @@ struct SystemDataView: View {
         case .simulatorRuntime: String(localized: "Remove the \(item.title) simulator?")
         case .unavailableSimulators: String(localized: "Delete unavailable simulators?")
         case .deviceBackup: String(localized: "Move the backup of \(item.title) to the Trash?")
-        case .messagesAttachments: ""
+        case .macOSInstaller, .deviceFirmware, .extraXcode: String(localized: "Move \(item.title) to the Trash?")
+        case .messagesAttachments, .soundLibrary, .mailDownloads: ""
         }
     }
 
@@ -101,13 +104,19 @@ struct SystemDataView: View {
             String(localized: "These simulators can't run anymore because their runtime was removed.")
         case .deviceBackup:
             String(localized: "Keep it if it's your only backup of this device. You can put it back from the Trash.")
-        case .messagesAttachments: ""
+        case .macOSInstaller:
+            String(localized: "You can download it again from Apple whenever you need it.")
+        case .deviceFirmware:
+            String(localized: "Finder downloads it again when it needs to update or restore a device.")
+        case .extraXcode:
+            String(localized: "The Xcode your developer tools use stays. Xcode from the App Store asks for your password.")
+        case .messagesAttachments, .soundLibrary, .mailDownloads: ""
         }
     }
 
     private func actionTitle(_ item: SystemDataItem) -> String {
         switch item.kind {
-        case .deviceBackup: String(localized: "Move to Trash")
+        case .deviceBackup, .macOSInstaller, .deviceFirmware, .extraXcode: String(localized: "Move to Trash")
         default: String(localized: "Delete")
         }
     }
@@ -127,12 +136,12 @@ struct SystemDataView: View {
         case .unavailableSimulators:
             let result = await inspector.deleteUnavailableSimulators()
             if !result.succeeded { error = result.error.isEmpty ? result.output : result.error }
-        case .deviceBackup:
+        case .deviceBackup, .macOSInstaller, .deviceFirmware, .extraXcode:
             guard let url = item.url else { return }
             let outcome = await TrashService.moveToTrash([ScanItem(url: url, bytes: item.bytes ?? 0, safety: .review)],
                                                          home: model.home, applicationRoots: model.applicationRoots)
             error = outcome.failures.first?.reason
-        case .messagesAttachments:
+        case .messagesAttachments, .soundLibrary, .mailDownloads:
             return
         }
         message = error.map { String(localized: "Couldn't remove \(item.title): \($0)") }
@@ -204,6 +213,11 @@ private struct SystemDataCard: View {
         case .unavailableSimulators(let count): String(localized: "\(count) unavailable simulators")
         case .deviceBackup: String(localized: "Backup of \(item.title)")
         case .messagesAttachments: String(localized: "Messages attachments")
+        case .macOSInstaller: item.title
+        case .deviceFirmware: String(localized: "Device software \(item.title)")
+        case .extraXcode: String(localized: "Another copy of Xcode: \(item.title)")
+        case .soundLibrary: String(localized: "GarageBand and Logic sounds")
+        case .mailDownloads: String(localized: "Mail attachments")
         }
     }
 
@@ -219,13 +233,24 @@ private struct SystemDataCard: View {
             String(localized: "Made by Finder when backing up this device to the Mac.")
         case .messagesAttachments:
             String(localized: "Photos, videos and files from your conversations. Remove them in Messages: Settings › General › Keep messages, or delete large attachments in a conversation's details.")
+        case .macOSInstaller:
+            String(localized: "A macOS installer left in Applications after an upgrade. It's not needed to run your Mac.")
+        case .deviceFirmware:
+            String(localized: "Downloaded by Finder to update or restore an iPhone or iPad.")
+        case .extraXcode:
+            String(localized: "Xcode versions take 10 GB or more each. The one your developer tools use isn't listed.")
+        case .soundLibrary:
+            String(localized: "Instruments and loops downloaded by GarageBand or Logic. Remove sounds from inside those apps.")
+        case .mailDownloads:
+            String(localized: "Copies Mail saved when you opened attachments. Mail keeps the originals in your messages.")
         }
     }
 
     private var buttonTitle: String {
         switch item.kind {
         case .messagesAttachments: String(localized: "Open Messages")
-        case .deviceBackup: String(localized: "Move to Trash…")
+        case .soundLibrary, .mailDownloads: String(localized: "Show in Finder")
+        case .deviceBackup, .macOSInstaller, .deviceFirmware, .extraXcode: String(localized: "Move to Trash…")
         default: String(localized: "Delete…")
         }
     }
@@ -243,6 +268,11 @@ private struct SystemDataCard: View {
         case .simulatorRuntime, .unavailableSimulators: "iphone.gen3"
         case .deviceBackup: "externaldrive.fill.badge.timemachine"
         case .messagesAttachments: "message.fill"
+        case .macOSInstaller: "arrow.down.app.fill"
+        case .deviceFirmware: "iphone.gen3.radiowaves.left.and.right"
+        case .extraXcode: "hammer.fill"
+        case .soundLibrary: "pianokeys"
+        case .mailDownloads: "envelope.fill"
         }
     }
 
@@ -252,6 +282,11 @@ private struct SystemDataCard: View {
         case .simulatorRuntime, .unavailableSimulators: .purple
         case .deviceBackup: .blue
         case .messagesAttachments: .green
+        case .macOSInstaller: .gray
+        case .deviceFirmware: .blue
+        case .extraXcode: .blue
+        case .soundLibrary: .orange
+        case .mailDownloads: .blue
         }
     }
 }
