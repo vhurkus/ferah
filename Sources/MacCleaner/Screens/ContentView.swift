@@ -9,6 +9,7 @@ enum SidebarItem: Hashable {
     case duplicates
     case homebrew
     case battery
+    case maintenance
     case module(ModuleKind)
 }
 
@@ -56,6 +57,12 @@ struct ContentView: View {
                 }
                 .badge(model.brewPackages.map { $0.filter(\.isOutdated).count }.flatMap { $0 > 0 ? Text("\($0)") : nil })
                 .tag(SidebarItem.homebrew)
+                Label {
+                    Text("Maintenance")
+                } icon: {
+                    IconTile(symbol: MaintenanceView.symbol, tint: MaintenanceView.tint, size: Metrics.sidebarIcon)
+                }
+                .tag(SidebarItem.maintenance)
                 if model.battery != nil {
                     Label {
                         Text("Battery")
@@ -101,6 +108,9 @@ struct ContentView: View {
             case .battery:
                 BatteryView(model: model)
                     .navigationTitle(Text("Battery"))
+            case .maintenance:
+                MaintenanceView(model: model)
+                    .navigationTitle(Text("Maintenance"))
             case .module(.apps):
                 AppsView(model: model)
                     .navigationTitle(Text(ModuleKind.apps.title))

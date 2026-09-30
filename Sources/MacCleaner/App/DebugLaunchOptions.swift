@@ -29,6 +29,7 @@ enum DebugLaunchOptions {
         case "duplicates": select(.duplicates)
         case "homebrew": select(.homebrew)
         case "battery": select(.battery)
+        case "maintenance": select(.maintenance)
         case "caches": select(.module(.caches))
         case "developer": select(.module(.developer))
         case "largeFiles": select(.module(.largeFiles))

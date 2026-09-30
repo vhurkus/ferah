@@ -413,3 +413,32 @@
 "Copies Mail saved when you opened attachments. Mail keeps the originals in your messages." = "Ekleri açtığında Mail'in kaydettiği kopyalar. Mail asıllarını iletilerinde saklar.";
 "macOS installers" = "macOS kurulum uygulamaları";
 "Device software" = "Cihaz yazılımları";
+
+/* Maintenance */
+"Maintenance" = "Bakım";
+"Fixes for common annoyances, using macOS's own tools. Run one only when you have the problem it fixes." = "Sık karşılaşılan sorunlar için macOS'in kendi araçlarıyla çözümler. Yalnızca çözdüğü sorunu yaşıyorsan çalıştır.";
+"Clean up the Open With menu" = "Birlikte Aç menüsünü temizle";
+"Check" = "Denetle";
+"Remove %lld Entries" = "%lld Kaydı Kaldır";
+"Flush the DNS cache" = "DNS önbelleğini temizle";
+"Helps when a website moved to a new server but your Mac still goes to the old one." = "Bir web sitesi yeni sunucuya taşındığı halde Mac'in hâlâ eskisine gidiyorsa işe yarar.";
+"Flush" = "Temizle";
+"DNS cache flushed." = "DNS önbelleği temizlendi.";
+"Rebuild the Spotlight index" = "Spotlight dizinini yeniden oluştur";
+"Helps when Spotlight misses files you know are there. Searching stays incomplete while it rebuilds, which can take an hour or more." = "Spotlight var olduğunu bildiğin dosyaları bulamıyorsa işe yarar. Yeniden oluşturma bir saat ya da daha uzun sürebilir, bu sırada aramalar eksik kalır.";
+"Rebuild…" = "Yeniden Oluştur…";
+"Rebuild" = "Yeniden Oluştur";
+"Spotlight is rebuilding its index in the background." = "Spotlight dizinini arka planda yeniden oluşturuyor.";
+"Reset Quick Look thumbnails" = "Quick Look küçük resimlerini sıfırla";
+"Helps when Finder shows old or wrong previews for files." = "Finder dosyalar için eski ya da yanlış önizlemeler gösteriyorsa işe yarar.";
+"Reset" = "Sıfırla";
+"Rebuild the Spotlight index?" = "Spotlight dizini yeniden oluşturulsun mu?";
+"Spotlight forgets everything it indexed and starts over. Until it's done, searches in Spotlight, Finder and Mail miss results." = "Spotlight dizinlediği her şeyi unutur ve baştan başlar. Bitene kadar Spotlight, Finder ve Mail aramalarında sonuçlar eksik çıkar.";
+"Removes apps that are gone or in the Trash from the list macOS uses for Open With and Spotlight, so they stop showing up twice." = "Silinmiş ya da Çöp'teki uygulamaları macOS'in Birlikte Aç ve Spotlight için kullandığı listeden çıkarır; böylece iki kez görünmezler.";
+"No leftover entries: every app macOS knows about is still there." = "Artık kayıt yok: macOS'in bildiği tüm uygulamalar yerinde.";
+"%lld entries point to apps that are gone or in the Trash, such as %@." = "%1$lld kayıt silinmiş ya da Çöp'teki uygulamaları gösteriyor, örneğin %2$@.";
+"Removed %lld entries. Apps you open again are added back automatically." = "%lld kayıt kaldırıldı. Yeniden açtığın uygulamalar otomatik olarak geri eklenir.";
+"Couldn't finish: %@" = "Tamamlanamadı: %@";
+"Ferah wants to run a maintenance task." = "Ferah bir bakım görevi çalıştırmak istiyor.";
+"Thumbnails reset. Finder makes new ones as you browse." = "Küçük resimler sıfırlandı. Finder gezindikçe yenilerini oluşturur.";
+"Asks for your password" = "Parolanı sorar";

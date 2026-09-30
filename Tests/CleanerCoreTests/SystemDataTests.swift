@@ -147,3 +147,25 @@ import Testing
         #expect(TrashPolicy.check(stray, home: home, applicationRoots: [apps]) == .systemApp)
     }
 }
+
+@Suite struct MaintenanceTests {
+    @Test func findsStaleOpenWithEntriesButNeverSystemOnes() {
+        let dump = """
+        Checking data integrity...
+        path:                       /Applications/Maccy.app (0x1a2b)
+        path:                       /Users/me/.Trash/Brave Browser.app (0x17f0)
+        path:                       /Users/me/Applications (Parallels)/{605b} Applications.localized/a199.app (0x17e4)
+        path:                       /System/Library/CoreServices/Gone.app (0x578)
+        path:                       /Applications/Maccy.app/Contents/Library/LoginItems/Helper.framework (0x1)
+        path:                       /Volumes/ClickShare/ClickShare_for_MacOSX.app (0x2140)
+        name:                       not a path
+        """
+        let existing: Set<String> = ["/Applications/Maccy.app", "/Users/me/.Trash/Brave Browser.app"]
+        let stale = Maintenance.staleRegistrations(in: dump) { existing.contains($0) }
+
+        #expect(stale == [
+            "/Users/me/.Trash/Brave Browser.app",
+            "/Users/me/Applications (Parallels)/{605b} Applications.localized/a199.app",
+        ])
+    }
+}

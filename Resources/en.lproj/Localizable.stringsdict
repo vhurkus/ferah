@@ -2,6 +2,38 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>Remove %lld Entries</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>Remove %lld Entry</string>
+			<key>other</key>
+			<string>Remove %lld Entries</string>
+		</dict>
+	</dict>
+	<key>Removed %lld entries. Apps you open again are added back automatically.</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>Removed %lld entry. Apps you open again are added back automatically.</string>
+			<key>other</key>
+			<string>Removed %lld entries. Apps you open again are added back automatically.</string>
+		</dict>
+	</dict>
 	<key>in %lld sets of identical files. One copy of each always stays.</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
